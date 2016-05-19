@@ -7,7 +7,7 @@ import { ConfigurationComponent } from './configuration.component';
 @Component({
     selector: 'my-app',
     template: `
-    <h1>{{title}} v{{version}}</h1>
+    <h2>{{title}} v{{version}}</h2>
     <a [routerLink]="['Configuration']">Configuration</a>
     <a [routerLink]="['Paper']">Paper</a>
     <router-outlet></router-outlet>

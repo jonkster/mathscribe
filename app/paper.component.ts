@@ -8,6 +8,13 @@ declare var MathJax: any;
   templateUrl: 'app/paper.component.html',
   styleUrls: ['app/paper.component.css'],
   directives: [  MathJaxDirective ],
+  styles: [`
+    #raw-input {
+        color: #a0a0a0;
+        height: 1.5em;
+        font-size: 1.5em;
+    }
+  `]
 })
 export class PaperComponent {
     rawString = 'y^x';

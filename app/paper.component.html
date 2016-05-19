@@ -11,12 +11,11 @@
     <div id="hand-controls">
         <button id="wrong">Wrong</button>
         <button id="clr">Clear</button>
-        <input [(ngModel)]="rawString"  />
+        <input id="raw-input" [(ngModel)]="rawString"  />
     </div>
 
 
     <div id="operator-controls">
-        <button (click)="addSymbol(' ')" >&#x2423;</button>
         <button (click)="addSymbol('+')" >+</button> 
         <button (click)="addSymbol('-')" >-</button> 
         <button (click)="addSymbol('xx')" >x</button> 
@@ -24,10 +23,26 @@
         <button (click)="addSymbol('=')" >=</button> 
         <button (click)="addSymbol('(')" >(</button> 
         <button (click)="addSymbol(')')" >)</button> 
+        <button (click)="addSymbol(' ')" >&#x2423;</button>
         <button (click)="addSymbol('^')" >y &#x02e3;</button> 
         <button (click)="addSymbol('sqrt')" >&#x221a;</button> 
         
         <button (click)="crossout()" ><del>100</del></button> 
         <button (click)="cursorMove(-1)" >(left)</button> 
+
+        <div id="number-controls">
+            <button (click)="addSymbol('.')" >.</button>
+            <button (click)="addSymbol('0')" >0</button> 
+            <button (click)="addSymbol('1')" >1</button> 
+            <button (click)="addSymbol('2')" >2</button> 
+            <button (click)="addSymbol('3')" >3</button> 
+            <button (click)="addSymbol('4')" >4</button> 
+            <button (click)="addSymbol('5')" >5</button> 
+            <button (click)="addSymbol('6')" >6</button> 
+            <button (click)="addSymbol('7')" >7</button> 
+            <button (click)="addSymbol('8')" >8</button> 
+            <button (click)="addSymbol('9')" >9</button> 
+            <button (click)="enter()" >Enter</button> 
+        </div>
     </div>
 </div>
