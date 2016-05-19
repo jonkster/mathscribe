@@ -1,0 +1,31 @@
+<div>
+    <canvas id="hand-canvas" ></canvas>
+    <img id="hand-img"/>
+    <div id="scribed">
+        <div myMathJax contenteditable="true" id="demoRendering">`sum_(i=1)^n i^3=((n(n+1))/2)^2`</div>
+        <p myMathJax>`{{rawString}}`</p>
+    </div>
+
+    <div id="hand-controls">
+        <button id="wrong">Wrong</button>
+        <button id="clr">Clear</button>
+        <input value="{{rawString}}" type="text" />
+    </div>
+
+
+    <div id="operator-controls">
+        <button (click)="addSymbol(' ')" >&#x2423;</button>
+        <button (click)="addSymbol('+')" >+</button> 
+        <button (click)="addSymbol('-')" >-</button> 
+        <button (click)="addSymbol('xx')" >x</button> 
+        <button (click)="addSymbol('/')" >/</button> 
+        <button (click)="addSymbol('=')" >=</button> 
+        <button (click)="addSymbol('(')" >(</button> 
+        <button (click)="addSymbol(')')" >)</button> 
+        <button (click)="addSymbol('^')" >y &#x02e3;</button> 
+        <button (click)="addSymbol('sqrt')" >&#x221a;</button> 
+        
+        <button (click)="crossout()" ><del>100</del></button> 
+        <button (click)="cursorMove(-1)" >(left)</button> 
+    </div>
+</div>

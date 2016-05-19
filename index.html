@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <base href="/">
+        <title>Math Scribe</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="styles.css">
+
+        <!-- 1. Load libraries -->
+        <!-- Polyfill(s) for older browsers -->
+        <script src="node_modules/es6-shim/es6-shim.min.js"></script>
+
+        <script src="node_modules/zone.js/dist/zone.js"></script>
+        <script src="node_modules/reflect-metadata/Reflect.js"></script>
+        <script src="node_modules/systemjs/dist/system.src.js"></script>
+
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Register.StartupHook('End', function() {
+                MathJax.Hub.Config({
+                    "showMathMenu": false,
+                    "extensions": ["toMathML.js"],
+                    "CommonHTML": { "linebreaks": { "automatic": true } },
+                    "HTML-CSS": { "linebreaks": { "automatic": true } },
+                    "SVG": { "linebreaks": { "automatic": true } },
+                    "asciimath2jax": {
+                        "preview": ["[math]"]
+                    }
+                });
+            });
+        </script>
+        <script type="text/javascript" async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+        <!-- 2. Configure SystemJS -->
+        <script src="systemjs.config.js"></script>
+        <script>
+            System.import('app').catch(function(err){ console.error(err); });
+        </script>
+
+    </head>
+
+    <!-- 3. Display the application -->
+    <body>
+        `sqrt3`
+        <my-app>Loading...</my-app>
+    </body>
+</html>
