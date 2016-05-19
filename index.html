@@ -17,6 +17,7 @@
         <script type="text/x-mathjax-config">
             MathJax.Hub.Register.StartupHook('End', function() {
                 MathJax.Hub.Config({
+                    "delayStartupUntil": "onload",
                     "showMathMenu": false,
                     "extensions": ["toMathML.js"],
                     "CommonHTML": { "linebreaks": { "automatic": true } },
@@ -28,9 +29,7 @@
                 });
             });
         </script>
-        <script type="text/javascript" async
-                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
-        </script>
+        <script type="text/javascript" src="./node_modules/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 
         <!-- 2. Configure SystemJS -->
         <script src="systemjs.config.js"></script>
