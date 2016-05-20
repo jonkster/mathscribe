@@ -7,7 +7,7 @@
     </div>
 
     <div id="hand-controls">
-        <button id="wrong">Wrong</button>
+        <button (click)="correct(handwriting)">Wrong</button>
         <button (click)="clear(handwriting)">Clear</button>
         <input id="raw-input" [(ngModel)]="rawString"  />
     </div>

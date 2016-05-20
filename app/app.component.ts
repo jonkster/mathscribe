@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS } from '@angular/router-deprecated';
 
+import './rxjs-operators';
+
 import { PaperComponent } from './paper.component';
 import { ConfigurationComponent } from './configuration.component';
 
