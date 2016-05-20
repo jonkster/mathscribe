@@ -3,6 +3,8 @@
 A simple web application to assist people with handwriting difficulties show
 written arithmetical working.
 
+The interface is presented via a browser and built using Angular 2.0.
+
 It uses a neural net based OCR web service to recognise drawn figures built
 using [convnetjs](https://github.com/karpathy/convnetjs).
 
