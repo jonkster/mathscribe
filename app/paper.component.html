@@ -1,16 +1,14 @@
 <div>
-    <canvas id="hand-canvas" ></canvas>
+    <canvas myWriting id="hand-canvas"></canvas>
     <img id="hand-img"/>
     <div id="scribed">
         <h1 myMathJax [(mathString)]="rawString"></h1>
         <hr/>
-        <!--<br/> left temporarily as qandd test of MathJax
-        <div myMathJax>`sum_(i=1)^n i^3=((n(n+1))/2)^2`</div>-->
     </div>
 
     <div id="hand-controls">
         <button id="wrong">Wrong</button>
-        <button id="clr">Clear</button>
+        <button (click)="clear(handwriting)">Clear</button>
         <input id="raw-input" [(ngModel)]="rawString"  />
     </div>
 
