@@ -4,12 +4,27 @@
     <div id="scribed">
         <h1 myMathJax [(mathString)]="rawString"></h1>
         <hr/>
+        <!--<p myMathTokens [(mathString)]="rawString">y^x=(3x+2)xx(2^x-3)</p>-->
+        <hr/>
+        <div id="tokens" round-scroller>
+            <div *ngFor="let token of tokens ;let i = index"
+                    class="carousel"
+                    [attr.id]="'term-' + i"
+                    [ngClass]="{'term-selected': i == carouselPick}">
+                `{{token}}`
+            </div>
+        </div>
+        <div>
+            <button (click)="carouselMove(-1)">&#x2b05;</button>
+            <button (click)="carouselMove(+1)">&#x2b95;</button>
+            <button (click)="crossout()" ><del>100</del></button> 
+        </div>
     </div>
 
     <div id="hand-controls">
         <button (click)="correct(handwriting)">Wrong</button>
         <button (click)="clear(handwriting)">Clear</button>
-        <input id="raw-input" [(ngModel)]="rawString"  />
+        <input id="raw-input" (keyup)="tokenise(rawString)" [(ngModel)]="rawString"  />
     </div>
 
 
@@ -24,10 +39,9 @@
         <button (click)="addSymbol(' ')" >&#x2423;</button>
         <button (click)="addSymbol('^')" >y &#x02e3;</button> 
         <button (click)="addSymbol('sqrt')" >&#x221a;</button> 
+        <button (click)="addSymbol('x')" >𝑥</button> 
+        <button (click)="addSymbol('y')" >𝑦</button> 
         
-        <button (click)="crossout()" ><del>100</del></button> 
-        <button (click)="cursorMove(-1)" >(left)</button> 
-
         <div id="number-controls">
             <button (click)="addSymbol('.')" >.</button>
             <button (click)="addSymbol('0')" >0</button> 
