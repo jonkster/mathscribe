@@ -35,7 +35,8 @@ export class MathJaxDirective {
                 }
                 else if (state == 'colouring')
                 {
-                    op.style.backgroundColor = 'red';
+                    if (op.className != 'msup')
+                        op.style.backgroundColor = 'red';
                 }
             }
     }

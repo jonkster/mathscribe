@@ -4,14 +4,13 @@
     <div id="scribed">
         <h1 myMathJax [(mathString)]="rawString"></h1>
         <hr/>
-        <!--<p myMathTokens [(mathString)]="rawString">y^x=(3x+2)xx(2^x-3)</p>-->
         <hr/>
         <div id="tokens" round-scroller>
             <div *ngFor="let token of tokens ;let i = index"
                     class="carousel"
                     [attr.id]="'term-' + i"
                     [ngClass]="{'term-selected': i == carouselPick}">
-                `{{token}}`
+                `{{token.term}}`
             </div>
         </div>
         <div>

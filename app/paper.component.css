@@ -41,6 +41,10 @@ button {
 #tokens {
 }
 
+#raw-input {
+    width: 80%;
+}
+
 .carousel {
     display: inline;
     border: 1px solid black;

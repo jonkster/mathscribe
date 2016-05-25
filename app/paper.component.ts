@@ -22,6 +22,8 @@ export class PaperComponent {
     @ViewChild(MyWritingDirective) handwritingDirective: MyWritingDirective;
     @ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
 
+    //rawString = '(sqrt(2))';
+    //rawString = '(3x+sqrt(23))+4';
     rawString = 'y^x=(3x+sqrt(22))xx(203^x-381 xx (5+6))+2';
     carouselPick = 0;
     tokens = [];
@@ -55,9 +57,11 @@ export class PaperComponent {
     };
 
     setMarker() {
-            var term = this.tokens[this.carouselPick];
+            var term = this.tokens[this.carouselPick].term;
+            var pos = this.tokens[this.carouselPick].position;
             this.rawString = this.rawString.replace(/;/g, '');
-            this.rawString = this.rawString.replace(term, ';' + term + ';');
+            var markedSt = this.rawString.substring(0, pos) + ';' + term + ';' + this.rawString.substring(pos+term.length) 
+            this.rawString = markedSt;
     }
 
     ngOnInit() {
@@ -67,11 +71,213 @@ export class PaperComponent {
 
     ngAfterViewInit() {}
 
-    tokenise(st) {  
-        var t = this.splitter(st);
-        console.log('all=', t);
-        this.tokens = t;
+    tokenise(st) {   
+        var tokens = [];
+        this.splitter2(st, 0, tokens);
+        console.log('all=', tokens);
+        this.tokens = tokens;
         MathJax.Hub.Queue(["Typeset",MathJax.Hub,"ul"]);
+    }
+
+    splitter2(st, cursorPos, tokens) {
+        while (cursorPos < st.length)
+        {
+            while (cursorPos < st.length && st[cursorPos].match(/\s/))
+                    cursorPos++;
+            var nextBit = st.substring(cursorPos);
+
+            if (nextBit.match(/^\s*\(/))
+            {
+                var nextPos = this.processBrackettedTerm(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            else if (nextBit.match(/^\s*sqrt/))
+            {
+                var nextPos = this.processFunction(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            else if (nextBit.match(/^\s*[0-9]+[a-z][^a-z]/))
+            {
+                var nextPos = this.processNumberTimesVariable(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            else if (nextBit.match(/^\s*[\.0-9]/))
+            {
+                var nextPos = this.processNumber(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            else if (nextBit.match(/^\s*xx/))
+            {
+                var nextPos = this.processOperator(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            else if (nextBit.match(/^\s*[a-z]/))
+            {
+                var nextPos = this.processVariable(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            else // assume single character operator
+            {
+                var nextPos = this.processOperator(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            cursorPos = nextPos;
+        }
+        return cursorPos;
+    }
+
+    processBrackettedTerm(st, cursorPos, tokens) {
+        var brackets = [];
+        var bDepth = 0;
+        var startPos = cursorPos;
+        for (var i = cursorPos; i < st.length; i++)
+        {
+            var ch = st[i];
+            if (ch == '(')
+            {
+                if (bDepth > 0)
+                    brackets.push(ch);
+                else
+                    startPos = i;
+
+                bDepth++;
+            }
+            else if (ch == ')')
+            {
+                bDepth--;
+                if (bDepth == 0)
+                {
+                    var exp = brackets.join('');
+                    tokens.push({
+                        'term': '(' + exp + ')',
+                        'position': startPos 
+                    });
+                    // now process interior of brackets
+                    var bracketTerms = [];
+                    var endPos = this.splitter2(st, cursorPos+1, bracketTerms);
+                    tokens = this.concatInPlace(tokens, bracketTerms);
+                    return endPos;
+                }
+                else
+                    brackets.push(ch);
+            }
+            else if (bDepth > 0)
+            {
+                brackets.push(ch);
+            }
+        }
+        return i;
+    }
+
+    findEndTerm(st, cursorPos) {
+        var bDepth = 0;
+        for (var i = cursorPos; i < st.length; i++)
+        {
+            var ch = st[i];
+            if (ch == '(')
+            {
+                bDepth++;
+            }
+            else if (ch == ')')
+            {
+                bDepth--;
+                if (bDepth == 0)
+                {
+                    return i+1;
+                }
+            }
+        }
+        return i;
+    }
+
+    concatInPlace(collA, collB) {
+        for (var i = 0; i < collB.length; i++)
+        {
+            collA.push(collB[i]);
+        }
+        return collA;
+    }
+
+    processFunction(st, cursorPos, tokens) {
+        /* eg:
+         ** st = sqrt((a + (b+c))
+         ** we need to add the whole function as a term.
+         ** then we process the bracketted arguments
+         */
+        var functionSymbolLength = 4; // currently assume there is only one function: sqrt
+        // first extract function as a whole and add that as a term
+        var endPos = this.findEndTerm(st, cursorPos);
+        var term = st.substring(cursorPos, endPos);
+        tokens.push({
+            'term': term,
+            'position': cursorPos
+        });
+        return endPos;
+    }
+
+    processNumberTimesVariable(st, cursorPos, tokens) {
+        var i = cursorPos;
+        while (i < st.length && st[i].match(/\s/))
+            i++;
+
+        var componentTerms = [];
+        var nextPos = this.processNumber(st, i, componentTerms);
+        nextPos = this.processVariable(st, nextPos, componentTerms);
+        tokens.push({
+            'term': st.substring(i, nextPos),
+            'position': i
+        });
+        tokens = this.concatInPlace(tokens, componentTerms);
+        return nextPos;
+    }
+
+    processNumber(st, cursorPos, tokens) {
+        var i = cursorPos;
+        while (i < st.length && st[i].match(/\s/))
+            i++;
+
+        cursorPos = i;
+        var num = '';
+        while (i < st.length && st[i].match(/\d/))
+        {
+                num += st[i];
+                i++;
+        }
+        tokens.push({
+            'term': num,
+            'position': cursorPos
+        });
+        return i;
+    }
+
+    processVariable(st, cursorPos, tokens) {
+        var i = cursorPos;
+        while (st[i].match(/\s/))
+            i++;
+
+        var ch = st[i];
+        tokens.push({
+            'term': ch,
+            'position': i
+        });
+        return i+1;
+    }
+
+    processOperator(st, cursorPos, tokens) {
+        var i = cursorPos;
+        while (st[i].match(/\s/))
+            i++;
+        if (st[i] == 'x' && st[i+1] == 'x')
+            i++
+                
+        return i + 1;
     }
 
     splitter(st) {
