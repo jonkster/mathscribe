@@ -1,7 +1,9 @@
 button {
     padding: 1em;
     margin: 0.8em;
-    font-size: 1.8em;
+    font-size: 1.3em;
+    padding: 1em;
+    border: 3px solid blue;
 }
 
 #hand-img {
@@ -10,6 +12,7 @@ button {
     height: 48px;
     float: left;
     display: block;
+    display: none;
 }
 
 #hand-canvas {
@@ -18,6 +21,7 @@ button {
     border: 1px solid black;
     float: left;
     display: block;
+    display: none;
 }
 
 #hand-controls {
@@ -28,14 +32,21 @@ button {
 #operator-controls {
     border: 1px solid black;
     float: left;
+    clear: both;
+}
+
+.pretty {
+    overflow: auto;
 }
 
 
 #scribed {
     border: 1px solid black;
     float: left;
-    width: 60%;
-    height: 400px;
+    /*width: 60%;
+    height: 400px;*/
+    display: block;
+    clear: both;
 }
 
 #tokens {
@@ -49,16 +60,27 @@ button {
     display: inline;
     border: 1px solid black;
     margin: 1.5;
-    background: #a0a0a0;
+    background-color: #a0a0a0;
 }
 
 .term-selected {
     font-size: 1.3em;
-    background: #7fa07f;
+    background-color: #7fa07f;
     margin: 2em;
     display: inline;
 }
 
+.line-arithmetic {
+    padding: 0.5em 0;
+    background-color: #ebebeb !important;
+}
+
+.line-selected {
+    font-size: 1.3em;
+    padding: 0.7em 0;
+    background-color: #ebf7eb !important;
+}
+
 .marker {
-        background: red;
+        background-color: red;
 }

@@ -1,34 +1,4 @@
 <div>
-    <canvas myWriting id="hand-canvas"></canvas>
-    <img id="hand-img"/>
-    <div id="scribed">
-
-        <h1 *ngFor="let rawString of rawStrings; let line = index" myMathJax [(mathString)]="rawStrings[line]"></h1>
-        <hr/>
-        <hr/>
-        <div>
-            <button (click)="carouselMove(-1)">&#x2b05;</button>
-            <button (click)="carouselMove(+1)">&#x2b95;</button>
-            <button (click)="crossout()" ><del>100</del></button> 
-            <button (click)="paste()" *ngIf="chosen != ''">paste: {{chosen}}</button> 
-        </div>
-        <div id="tokens" round-scroller>
-            <div *ngFor="let token of tokens ;let i = index"
-                    class="carousel"
-                    [attr.id]="'term-' + i"
-                    [ngClass]="{'term-selected': i == carouselPick}">
-                `{{token.term}}`
-            </div>
-        </div>
-    </div>
-
-    <div id="hand-controls">
-        <button (click)="correct(handwriting)">Wrong</button>
-        <button (click)="clear(handwriting)">Clear</button>
-        <input id="raw-input" (keyup)="tokenise(rawStrings[lineIndex])" [(ngModel)]="rawStrings[lineIndex]"  />
-    </div>
-
-
     <div id="operator-controls">
         <button (click)="addSymbol('+')" >+</button> 
         <button (click)="addSymbol('-')" >-</button> 
@@ -57,5 +27,44 @@
             <button (click)="addSymbol('9')" >9</button> 
             <button (click)="enter()" >Enter</button> 
         </div>
+    </div>
+    <canvas myWriting id="hand-canvas"></canvas>
+    <img id="hand-img"/>
+    <div id="scribed">
+        <div>
+            <button (click)="carouselMove(-1)" *ngIf="rawStrings[lineIndex] != ''">&#x2b05;</button>
+            <button (click)="carouselMove(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x2b95;</button>
+            <button (click)="stretchRight(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x21c0;</button>
+            <button (click)="crossout()" *ngIf="rawStrings[lineIndex] != ''"><del>100</del></button> 
+            <button (click)="remove()" *ngIf="rawStrings[lineIndex] != ''">remove</button>
+            <button (click)="newCopy()" *ngIf="rawStrings[lineIndex] != ''">new copy</button>
+            <button (click)="paste()" *ngIf="chosen != ''">paste: {{chosen}}</button> 
+            <button (click)="vertical(-1)"
+                    [disabled]="lineIndex<=0">&#x2b06;</button> 
+            <button (click)="vertical(+1)"
+                    [disabled]="lineIndex >= rawStrings.length-1">&#x2b07;</button> 
+            <div class="pretty">
+                <div *ngFor="let rawString of rawStrings; let line = index"
+                    myMathJax
+                    class="line-arithmetic"
+                    [ngClass]="{'line-selected': line == lineIndex}"
+                    [(mathString)]="rawStrings[line]">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="hand-controls">
+        <button (click)="correct(handwriting)">Wrong</button>
+        <button (click)="clear(handwriting)">Clear</button>
+        <input id="raw-input" (keyup)="tokenise(rawStrings[lineIndex])" [(ngModel)]="rawStrings[lineIndex]"  />
+            <div id="tokens" round-scroller>
+                <div *ngFor="let token of tokens ;let i = index"
+                        class="carousel"
+                        [attr.id]="'term-' + i"
+                        [ngClass]="{'term-selected': i == carouselPick}">
+                    `{{token.term}}`
+                </div>
+            </div>
     </div>
 </div>

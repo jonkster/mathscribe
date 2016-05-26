@@ -22,6 +22,9 @@ export class PaperComponent {
     @ViewChild(MyWritingDirective) handwritingDirective: MyWritingDirective;
     @ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
 
+    mathjaxMarker = 'color{red}';
+    markerLength = this.mathjaxMarker.length;
+
     rawStrings = ['x/2=3'];
     lineIndex = 0;
     carouselPick = 0;
@@ -32,10 +35,11 @@ export class PaperComponent {
     addSymbol(sym) {
             var st = this.rawStrings[this.lineIndex];
             var newSt = st + sym;
-            if (st.match(/bbb{.*}/))
+            var markerRE = new RegExp(this.mathjaxMarker + '{.*}');
+            if (st.match(markerRE))
             {
                 // add sym after current marked term
-                var startPos = st.indexOf('bbb{')+3;
+                var startPos = st.indexOf(this.mathjaxMarker + '{')+this.markerLength;
                 newSt = st.substring(0, startPos);
                 var openBraces = 0;
                 var looking = true;
@@ -68,7 +72,6 @@ export class PaperComponent {
             }
             this.rawStrings[this.lineIndex] = newSt;
             this.tokenise(this.rawStrings[this.lineIndex]);
-            this.carouselMove(1);
     };
 
     crossout() {
@@ -99,7 +102,16 @@ export class PaperComponent {
     };
 
     cancelMarked(st) {
-        return st.replace(/bbb{/g, 'cancel{');
+        var markerRE = new RegExp(this.mathjaxMarker + '{', 'g');
+        return st.replace(markerRE, 'cancel{');
+    }
+
+    vertical(amount) {
+        this.lineIndex += amount;
+        if (this.lineIndex < 0)
+            this.lineIndex = 0;
+        if (this.lineIndex >= this.rawStrings.length -1)
+            this.lineIndex = this.rawStrings.length -1;
     }
 
 
@@ -111,6 +123,52 @@ export class PaperComponent {
         }
         this.tokenise(this.rawStrings[this.lineIndex]);
         this.carouselPick = 0;
+    }
+
+    newCopy() {
+        this.rawStrings.push(this.rawStrings[this.lineIndex]);
+        this.lineIndex = this.rawStrings.length - 1;
+        this.tokenise(this.rawStrings[this.lineIndex]);
+        this.carouselPick = 0;
+    }
+
+    remove() {
+        var tag = this.mathjaxMarker;
+        var markerRE = new RegExp(tag + '{.*}');
+        var st = this.rawStrings[this.lineIndex];
+        if (st.match(markerRE))
+        {
+            var startPos = st.indexOf(tag + '{');
+            var newSt = st.substring(0, startPos);
+            var openBraces = 1;
+            var looking = true;
+            for (var i = startPos+tag.length+1; i < st.length; i++)
+            {
+                var ch = st[i];
+                if (looking)
+                {
+                    if (ch == '{')
+                    {
+                        openBraces++;
+                    }
+                    else if (ch == '}')
+                    {
+                        openBraces--;
+                    }
+
+                    if (openBraces == 0)
+                    {
+                        looking = false;
+                    }
+                }
+                else
+                {
+                    newSt += ch;
+                }
+            }
+            this.rawStrings[this.lineIndex] = newSt;
+            this.tokenise(this.rawStrings[this.lineIndex]);
+        }
     }
 
     /*
@@ -159,21 +217,72 @@ export class PaperComponent {
     }
 
     setMarker() {
+        if (this.tokens.length > 0)
+        {
             var term = this.tokens[this.carouselPick].term;
             var pos = this.tokens[this.carouselPick].position;
-            this.rawStrings[this.lineIndex] = this.removeMarker(this.rawStrings[this.lineIndex], 'bbb');
-            var markedSt = this.rawStrings[this.lineIndex].substring(0, pos) + 'bbb{' + term + '}' + this.rawStrings[this.lineIndex].substring(pos+term.length) 
+            this.rawStrings[this.lineIndex] = this.removeMarker(this.rawStrings[this.lineIndex], this.mathjaxMarker);
+            var markedSt = this.rawStrings[this.lineIndex].substring(0, pos) + this.mathjaxMarker + '{' + term + '}' + this.rawStrings[this.lineIndex].substring(pos+term.length) 
             this.rawStrings[this.lineIndex] = markedSt;
+        }
     }
 
     ngOnInit() {
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,"myMathJax"]);
             this.tokenise(this.rawStrings[this.lineIndex]);
-            this.setMarker();
     }
 
     paste() {
         this.addSymbol(this.chosen);
+    }
+
+    stretchRight(amount) {
+
+        var st = this.rawStrings[this.lineIndex];
+        var tag = this.mathjaxMarker;
+        var markerRE = new RegExp(tag + '{.*}');
+        if (st.match(markerRE))
+        {
+            var startPos = st.indexOf(tag + '{') + this.markerLength;
+            var newSt = st.substring(0, startPos);
+            var openBraces = 0;
+            var state = 'looking';
+            for (var i = startPos; i < st.length; i++)
+            {
+                var ch = st[i];
+                if (state == 'looking')
+                {
+                    if (ch == '{')
+                    {
+                        openBraces++;
+                        newSt += ch;
+                    }
+                    else if (ch == '}')
+                    {
+                        openBraces--;
+                    }
+                    else
+                    {
+                        newSt += ch;
+                    }
+
+                    if (openBraces == 0)
+                    {
+                        state = 'stretching';
+                    }
+                }
+                else if (state == 'stretching')
+                {
+                newSt += ch + '}';
+                    state = 'done';
+                }
+                else if (state == 'done')
+                {
+                    newSt += ch;
+                }
+            }
+            this.rawStrings[this.lineIndex] = newSt;
+        }
     }
 
     tokensAdd(term, position, tokens) {
@@ -189,7 +298,7 @@ export class PaperComponent {
 
 
     tokenise(st) {   
-        st = this.removeMarker(st, 'bbb');
+        st = this.removeMarker(st, this.mathjaxMarker);
         var tokens = [];
         this.knownTokens = [];
         var terms = st.split(/=/);
@@ -202,12 +311,17 @@ export class PaperComponent {
                 this.tokensAdd(term, termStart, tokens);
                 termStart += term.length + 1;
             }
+            if (i < terms.length-1)
+            {
+                this.tokensAdd('=', termStart-1, tokens);
+            }
         }
         this.splitter2(st, 0, tokens);
         console.log('all=', tokens);
         this.tokens = tokens;
         MathJax.Hub.Queue(["Typeset",MathJax.Hub,"ul"]);
         console.log('I know of', Object.keys(this.knownTokens));
+        this.setMarker();
     }
 
     splitter2(st, cursorPos, tokens) {
