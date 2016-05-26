@@ -48,14 +48,15 @@ button {
 .carousel {
     display: inline;
     border: 1px solid black;
-    margin: 2px;
+    margin: 1.5;
     background: #a0a0a0;
 }
 
 .term-selected {
-    font-size: 2em;
+    font-size: 1.3em;
     background: #7fa07f;
-    display: block;
+    margin: 2em;
+    display: inline;
 }
 
 .marker {

@@ -13,7 +13,7 @@ export class MathJaxDirective {
     }
 
     setMarker() {
-            var ops = this.el.nativeElement.getElementsByTagName('span')
+    /*var ops = this.el.nativeElement.getElementsByTagName('span')
             var state = 'looking';
             for (var i = 0; i < ops.length; i++)
             {
@@ -22,28 +22,32 @@ export class MathJaxDirective {
                 {
                     if (state == 'looking')
                     {
-                        op.style.backgroundColor = 'red';
+                        op.style.backgroundColor = 'yellow';
                         op.style.display = 'none';
                         state = 'colouring';
                     }
                     else if (state == 'colouring')
                     {
-                        op.style.backgroundColor = 'red';
+                        op.style.backgroundColor = 'yellow';
                         op.style.display = 'none';
                         state = 'done';
                     }
                 }
                 else if (state == 'colouring')
                 {
-                    if (op.className != 'msup')
-                        op.style.backgroundColor = 'red';
+                    var cl = op.className;
+                    if ((cl != 'msup') && (cl != '') && (cl != 'op'))
+                    {
+                        console.log('cl', cl);
+                        op.style.backgroundColor = 'yellow';
+                    }
                 }
-            }
+            }*/
     }
 
 
     ngOnChanges(changes: { [propName: string]: SimpleChange }) {  
-        this.el.nativeElement.style.backgroundColor = 'yellow';
+        this.el.nativeElement.style.backgroundColor = 'white';
         this.el.nativeElement.innerHTML = '`' + this.mathString + '`';
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.el.nativeElement]);
         var obj = this;

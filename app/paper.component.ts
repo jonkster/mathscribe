@@ -22,23 +22,65 @@ export class PaperComponent {
     @ViewChild(MyWritingDirective) handwritingDirective: MyWritingDirective;
     @ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
 
-    //rawString = '(sqrt(2))';
-    //rawString = '(3x+sqrt(23))+4';
-    rawString = 'y^x=(3x+sqrt(22))xx(203^x-381 xx (5+6))+2';
+    rawStrings = ['x/2=3'];
+    lineIndex = 0;
     carouselPick = 0;
+    chosen = '';
+    knownTokens = [];
     tokens = [];
 
-    addSymbol(sym) { this.rawString += sym; this.tokenise(this.rawString); };
+    addSymbol(sym) {
+            var st = this.rawStrings[this.lineIndex];
+            var newSt = st + sym;
+            if (st.match(/bbb{.*}/))
+            {
+                // add sym after current marked term
+                var startPos = st.indexOf('bbb{')+3;
+                newSt = st.substring(0, startPos);
+                var openBraces = 0;
+                var looking = true;
+                for (var i = startPos; i < st.length; i++)
+                {
+                    var ch = st[i];
+                    if (looking)
+                    {
+                        if (ch == '{')
+                        {
+                            openBraces++;
+                        }
+                        else if (ch == '}')
+                        {
+                            openBraces--;
+                        }
+                        newSt += ch;
+
+                        if (openBraces == 0)
+                        {
+                            looking = false;
+                            newSt += sym;
+                        }
+                    }
+                    else
+                    {
+                        newSt += ch;
+                    }
+                }
+            }
+            this.rawStrings[this.lineIndex] = newSt;
+            this.tokenise(this.rawStrings[this.lineIndex]);
+            this.carouselMove(1);
+    };
 
     crossout() {
             var term = this.tokens[this.carouselPick];
-            this.rawString = this.rawString.replace(/;/g, '');
-            this.rawString = this.rawString.replace(term, 'cancel{' + term + '}');
+            this.chosen = term.term;
+            this.rawStrings[this.lineIndex] = this.cancelMarked(this.rawStrings[this.lineIndex]);
+            this.tokenise(this.rawStrings[this.lineIndex]);
     }
 
-    clear(x) { this.handwritingDirective.clear(); this.rawString = ''; };
+    clear(x) { this.handwritingDirective.clear(); this.rawStrings[this.lineIndex] = ''; };
 
-    correct(x) { this.handwritingDirective.clear(); this.rawString = this.rawString.slice(0, -1);  };
+    correct(x) { this.handwritingDirective.clear(); this.rawStrings[this.lineIndex] = this.rawStrings[this.lineIndex].slice(0, -1);  };
 
     carouselMove(amount) {
         if (this.tokens.length > 0)
@@ -56,30 +98,120 @@ export class PaperComponent {
         }
     };
 
+    cancelMarked(st) {
+        return st.replace(/bbb{/g, 'cancel{');
+    }
+
+
+    enter() {
+        this.lineIndex += 1;
+        if (this.lineIndex >= this.rawStrings.length)
+        {
+            this.rawStrings.push('');
+        }
+        this.tokenise(this.rawStrings[this.lineIndex]);
+        this.carouselPick = 0;
+    }
+
+    /*
+    ** tag is the 'tag' name of a tag{...} macro
+    ** eg removeMarker('1+2bbb{3+cancel{4}}', 'bbb')
+    */
+    removeMarker(st, tag) {
+        var markerRE = new RegExp(tag + '{.*}');
+        if (st.match(markerRE))
+        {
+            var startPos = st.indexOf(tag + '{');
+            var newSt = st.substring(0, startPos);
+            var openBraces = 1;
+            var looking = true;
+            for (var i = startPos+tag.length+1; i < st.length; i++)
+            {
+                var ch = st[i];
+                if (looking)
+                {
+                    if (ch == '{')
+                    {
+                        openBraces++;
+                    }
+                    else if (ch == '}')
+                    {
+                        openBraces--;
+                    }
+
+                    if (openBraces == 0)
+                    {
+                        looking = false;
+                    }
+                    else
+                    {
+                            newSt += ch;
+                    }
+                }
+                else
+                {
+                    newSt += ch;
+                }
+            }
+            return newSt;
+        }
+        return st;
+    }
+
     setMarker() {
             var term = this.tokens[this.carouselPick].term;
             var pos = this.tokens[this.carouselPick].position;
-            this.rawString = this.rawString.replace(/;/g, '');
-            var markedSt = this.rawString.substring(0, pos) + ';' + term + ';' + this.rawString.substring(pos+term.length) 
-            this.rawString = markedSt;
+            this.rawStrings[this.lineIndex] = this.removeMarker(this.rawStrings[this.lineIndex], 'bbb');
+            var markedSt = this.rawStrings[this.lineIndex].substring(0, pos) + 'bbb{' + term + '}' + this.rawStrings[this.lineIndex].substring(pos+term.length) 
+            this.rawStrings[this.lineIndex] = markedSt;
     }
 
     ngOnInit() {
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,"myMathJax"]);
-            this.tokenise(this.rawString);
+            this.tokenise(this.rawStrings[this.lineIndex]);
+            this.setMarker();
     }
 
-    ngAfterViewInit() {}
+    paste() {
+        this.addSymbol(this.chosen);
+    }
+
+    tokensAdd(term, position, tokens) {
+        if (this.knownTokens[position + '::' + term] == undefined)
+        {
+            tokens.push({
+                'term': term,
+                'position': position
+            });
+            this.knownTokens[position + '::' + term] = true;
+        }
+    }
+
 
     tokenise(st) {   
+        st = this.removeMarker(st, 'bbb');
         var tokens = [];
+        this.knownTokens = [];
+        var terms = st.split(/=/);
+        var termStart = 0;
+        for (var i = 0; i < terms.length; i++)
+        {
+            var term = terms[i];
+            if (term.length > 0)
+            {
+                this.tokensAdd(term, termStart, tokens);
+                termStart += term.length + 1;
+            }
+        }
         this.splitter2(st, 0, tokens);
         console.log('all=', tokens);
         this.tokens = tokens;
         MathJax.Hub.Queue(["Typeset",MathJax.Hub,"ul"]);
+        console.log('I know of', Object.keys(this.knownTokens));
     }
 
     splitter2(st, cursorPos, tokens) {
+
         while (cursorPos < st.length)
         {
             while (cursorPos < st.length && st[cursorPos].match(/\s/))
@@ -89,6 +221,12 @@ export class PaperComponent {
             if (nextBit.match(/^\s*\(/))
             {
                 var nextPos = this.processBrackettedTerm(st, cursorPos, tokens);
+                if (cursorPos >= nextPos)
+                    return cursorPos;
+            }
+            else if (nextBit.match(/^\s*cancel{/))
+            {
+                var nextPos = this.processMacro(st, cursorPos, tokens);
                 if (cursorPos >= nextPos)
                     return cursorPos;
             }
@@ -133,6 +271,33 @@ export class PaperComponent {
         return cursorPos;
     }
 
+    processEqualTerms(st, cursorPos, tokens) {
+        var term = '';
+        var termStart = cursorPos;
+        var trailingEquals = false;
+        for (var i = cursorPos; i < st.length; i++)
+        {
+            var ch = st[i];
+            if (ch == '=')
+            {
+                this.tokensAdd(term, termStart, tokens);
+                term = '';
+                termStart = i;
+                trailingEquals = true;
+            }
+            else
+            {
+                term += ch;
+                trailingEquals = false;
+            }
+        }
+        if (! trailingEquals)
+        {
+            this.tokensAdd(term, termStart, tokens);
+        }
+        return cursorPos;
+    }
+
     processBrackettedTerm(st, cursorPos, tokens) {
         var brackets = [];
         var bDepth = 0;
@@ -155,10 +320,7 @@ export class PaperComponent {
                 if (bDepth == 0)
                 {
                     var exp = brackets.join('');
-                    tokens.push({
-                        'term': '(' + exp + ')',
-                        'position': startPos 
-                    });
+                    this.tokensAdd('(' + exp + ')', startPos, tokens);
                     // now process interior of brackets
                     var bracketTerms = [];
                     var endPos = this.splitter2(st, cursorPos+1, bracketTerms);
@@ -176,16 +338,16 @@ export class PaperComponent {
         return i;
     }
 
-    findEndTerm(st, cursorPos) {
+    findEndTerm(st, cursorPos, startCh, endCh) {
         var bDepth = 0;
         for (var i = cursorPos; i < st.length; i++)
         {
             var ch = st[i];
-            if (ch == '(')
+            if (ch == startCh)
             {
                 bDepth++;
             }
-            else if (ch == ')')
+            else if (ch == endCh)
             {
                 bDepth--;
                 if (bDepth == 0)
@@ -205,20 +367,23 @@ export class PaperComponent {
         return collA;
     }
 
+    processMacro(st, cursorPos, tokens) {
+        var endPos = this.findEndTerm(st, cursorPos, '{', '}');
+        var term = st.substring(cursorPos, endPos);
+        this.tokensAdd(term, cursorPos, tokens);
+        return endPos;
+    }
+
     processFunction(st, cursorPos, tokens) {
         /* eg:
          ** st = sqrt((a + (b+c))
          ** we need to add the whole function as a term.
          ** then we process the bracketted arguments
          */
-        var functionSymbolLength = 4; // currently assume there is only one function: sqrt
         // first extract function as a whole and add that as a term
-        var endPos = this.findEndTerm(st, cursorPos);
+        var endPos = this.findEndTerm(st, cursorPos, '(', ')');
         var term = st.substring(cursorPos, endPos);
-        tokens.push({
-            'term': term,
-            'position': cursorPos
-        });
+        this.tokensAdd(term, cursorPos, tokens);
         return endPos;
     }
 
@@ -230,10 +395,7 @@ export class PaperComponent {
         var componentTerms = [];
         var nextPos = this.processNumber(st, i, componentTerms);
         nextPos = this.processVariable(st, nextPos, componentTerms);
-        tokens.push({
-            'term': st.substring(i, nextPos),
-            'position': i
-        });
+        this.tokensAdd(st.substring(i, nextPos), i, tokens);
         tokens = this.concatInPlace(tokens, componentTerms);
         return nextPos;
     }
@@ -250,10 +412,7 @@ export class PaperComponent {
                 num += st[i];
                 i++;
         }
-        tokens.push({
-            'term': num,
-            'position': cursorPos
-        });
+        this.tokensAdd(num, cursorPos, tokens);
         return i;
     }
 
@@ -263,116 +422,26 @@ export class PaperComponent {
             i++;
 
         var ch = st[i];
-        tokens.push({
-            'term': ch,
-            'position': i
-        });
+        this.tokensAdd(ch, i, tokens);
         return i+1;
     }
 
     processOperator(st, cursorPos, tokens) {
         var i = cursorPos;
-        while (st[i].match(/\s/))
+        while (i < st.length && st[i].match(/\s/))
             i++;
+
         if (st[i] == 'x' && st[i+1] == 'x')
+        {
+            this.tokensAdd('xx', i, tokens);
             i++
+        }
+        else
+        {
+            this.tokensAdd(st[i], i, tokens);
+        }
                 
         return i + 1;
-    }
-
-    splitter(st) {
-        console.log('s=',st);
-        var terms = [];
-        this.pushExpressions(st, terms);
-        this.pushBrackets(st, terms);
-        this.pushNumbers(st, terms);
-        this.pushVariables(st, terms);
-        var unique = [];
-        for (var i = 0; i < terms.length; i++)
-        {
-            unique[terms[i]] = terms[i].length;
-        }
-        var tokens = Object.keys(unique);
-        tokens = tokens.sort(function(a, b) {
-            return (b.length - a.length);
-        });
-        console.log('u', tokens);
-        return tokens;
-    }
-
-    pushBrackets(st, terms) {
-        var brackets = [];
-        var bDepth = 0;
-        for (var i = 0; i < st.length; i++)
-        {
-            var ch = st[i];
-            if (ch == '(')
-            {
-                if (bDepth > 0)
-                    brackets.push(ch);
-
-                bDepth++;
-            }
-            else if (ch == ')')
-            {
-                bDepth--;
-                if (bDepth == 0)
-                {
-                    var exp = brackets.join('');
-                    terms.push(exp);
-                    this.pushBrackets(exp, terms);
-                    brackets = [];
-                }
-                else
-                    brackets.push(ch);
-            }
-            else if (bDepth > 0)
-            {
-                brackets.push(ch);
-            }
-        }
-        return terms;
-    }
-
-    pushExpressions(st, terms) {
-        var exps = st.split(/\s*=\s*/g);
-        if (exps)
-        {
-            console.log(st, '->', exps);
-            for (var i = 0; i < exps.length; i++)
-            {
-                terms.push(exps[i]);
-            }
-        }
-        return terms;
-    }
-
-    pushNumbers(st, terms) {
-        var nums = st.match(/\d+/g);
-        if (nums)
-        {
-            console.log(st, '->', nums);
-            for (var i = 0; i < nums.length; i++)
-            {
-                terms.push(nums[i]);
-            }
-        }
-        return terms;
-    }
-
-    pushVariables(st, terms) {
-        st = st.replace(/sqrt/g, '~');
-        st = st.replace(/xx/g, '~');
-        var alphs = st.match(/[a-zA-Z]+/g);
-        if (alphs)
-        {
-            console.log(st, '->', alphs);
-            for (var i = 0; i < alphs.length; i++)
-            {
-                terms.push(alphs[i]);
-            }
-        }
-        return terms;
     }
 
 }

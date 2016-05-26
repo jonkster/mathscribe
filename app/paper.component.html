@@ -2,9 +2,16 @@
     <canvas myWriting id="hand-canvas"></canvas>
     <img id="hand-img"/>
     <div id="scribed">
-        <h1 myMathJax [(mathString)]="rawString"></h1>
+
+        <h1 *ngFor="let rawString of rawStrings; let line = index" myMathJax [(mathString)]="rawStrings[line]"></h1>
         <hr/>
         <hr/>
+        <div>
+            <button (click)="carouselMove(-1)">&#x2b05;</button>
+            <button (click)="carouselMove(+1)">&#x2b95;</button>
+            <button (click)="crossout()" ><del>100</del></button> 
+            <button (click)="paste()" *ngIf="chosen != ''">paste: {{chosen}}</button> 
+        </div>
         <div id="tokens" round-scroller>
             <div *ngFor="let token of tokens ;let i = index"
                     class="carousel"
@@ -13,17 +20,12 @@
                 `{{token.term}}`
             </div>
         </div>
-        <div>
-            <button (click)="carouselMove(-1)">&#x2b05;</button>
-            <button (click)="carouselMove(+1)">&#x2b95;</button>
-            <button (click)="crossout()" ><del>100</del></button> 
-        </div>
     </div>
 
     <div id="hand-controls">
         <button (click)="correct(handwriting)">Wrong</button>
         <button (click)="clear(handwriting)">Clear</button>
-        <input id="raw-input" (keyup)="tokenise(rawString)" [(ngModel)]="rawString"  />
+        <input id="raw-input" (keyup)="tokenise(rawStrings[lineIndex])" [(ngModel)]="rawStrings[lineIndex]"  />
     </div>
 
 
