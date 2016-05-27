@@ -1,8 +1,9 @@
     <div id="scribed">
         <div>
-            ```xcolor{red}{sqrthArr}3=1.7```
+            <!-- ```xcolor{red}{sqrthArr}3=1.7``` -->
             <!--<button (click)="carouselMove(-1)" *ngIf="rawStrings[lineIndex] != ''">&#x2b05;</button>
             <button (click)="carouselMove(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x2b95;</button>-->
+            <button (click)="markMove(-1)" *ngIf="rawStrings[lineIndex] != ''">&#x2190;</button>
             <button (click)="markMove(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x2192;</button>
             <button (click)="stretchMarked(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x21c9;</button>
             <button (click)="crossout()" *ngIf="rawStrings[lineIndex] != ''"><del>100</del></button> 
@@ -56,7 +57,8 @@
     <img id="hand-img"/>
 
     <div id="hand-controls">
-        <button (click)="correct(handwriting)">Wrong</button>
+        <!--<button (click)="correct(handwriting)">Wrong</button>-->
+        <button (click)="undo()">Undo</button>
         <button (click)="clear(handwriting)">Clear</button>
         <input id="raw-input" (keyup)="tokenise(rawStrings[lineIndex])" [(ngModel)]="rawStrings[lineIndex]"  />
 

@@ -9,9 +9,7 @@ import { ConfigurationComponent } from './configuration.component';
 @Component({
     selector: 'my-app',
     template: `
-    <h2>{{title}} v{{version}}</h2>
-    <a [routerLink]="['Configuration']">Configuration</a>
-    <a [routerLink]="['Paper']">Paper</a>
+    <h2>{{title}} v{{version}} | <a [routerLink]="['Configuration']">Configuration</a> | <a [routerLink]="['Paper']">Paper</a></h2>
     <router-outlet></router-outlet>
     `,
     directives: [  ROUTER_DIRECTIVES ],
@@ -32,7 +30,7 @@ import { ConfigurationComponent } from './configuration.component';
   ])
 
 export class AppComponent {
-    title = 'Math Scribe';
+    title = 'Maths Scribe';
     version = '0.0';
 }
 
