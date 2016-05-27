@@ -44,7 +44,8 @@ export class PaperComponent {
         var end = this.markEndPos;
         for (var i = start; i < end+1; i++)
         {
-            this.rawStructure[i].token = 'untouchable';
+            if (this.rawStructure[i])
+                this.rawStructure[i].token = 'untouchable';
         }
 
         var termStart = this.rawStructure[start].term;
@@ -134,7 +135,8 @@ export class PaperComponent {
         var end = this.markEndPos;
         for (var i = start; i < end+1; i++)
         {
-            this.rawStructure[i].token = 'removed';
+            if (this.rawStructure[i])
+                this.rawStructure[i].token = 'removed';
         }
         this.markMove(1);
         this.addMarker();    
@@ -169,7 +171,9 @@ export class PaperComponent {
         }
         // avoid breaking sqrt display if it is finished by selection curly
         // brace
-        st = st.replace(/sqrt}/, 'sqrthArr}');
+        st = st.replace(/sqrt}/, 'sqrtrArr}');
+        st = st.replace(/\(}/, 'rArr}');
+        st = st.replace(/\)\}/, 'lArr}');
         this.markedStrings[this.lineIndex] = st;
     }
 
@@ -372,7 +376,6 @@ export class PaperComponent {
 
     undo() {
         var state = this.undoBuffer.pop();
-        console.log(state);
         if (state) {
             this.lineIndex = state.lineIndex;
             this.rawStrings = state.rawStrings;

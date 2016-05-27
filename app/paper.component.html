@@ -1,8 +1,13 @@
     <div id="scribed">
+            <div class="pretty">
+                <div *ngFor="let markedString of markedStrings; let line = index"
+                    myMathJax
+                    class="line-arithmetic"
+                    [ngClass]="{'line-selected': line == lineIndex}"
+                    [(mathString)]="markedStrings[line]">
+                </div>
+            </div>
         <div>
-            <!-- ```xcolor{red}{sqrthArr}3=1.7``` -->
-            <!--<button (click)="carouselMove(-1)" *ngIf="rawStrings[lineIndex] != ''">&#x2b05;</button>
-            <button (click)="carouselMove(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x2b95;</button>-->
             <button (click)="markMove(-1)" *ngIf="rawStrings[lineIndex] != ''">&#x2190;</button>
             <button (click)="markMove(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x2192;</button>
             <button (click)="stretchMarked(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x21c9;</button>
@@ -13,14 +18,6 @@
             <button (click)="vertical(-1)" [disabled]="lineIndex<=0">&#x2b06;</button> 
             <button (click)="vertical(+1)" [disabled]="lineIndex >= rawStrings.length-1">&#x2b07;</button> 
 
-            <div class="pretty">
-                <div *ngFor="let markedString of markedStrings; let line = index"
-                    myMathJax
-                    class="line-arithmetic"
-                    [ngClass]="{'line-selected': line == lineIndex}"
-                    [(mathString)]="markedStrings[line]">
-                </div>
-            </div>
         </div>
     </div>
 <div>
