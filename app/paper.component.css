@@ -1,6 +1,6 @@
 button {
-    margin: 1em;
-    font-size: 1.5em;
+    margin: 1.2em;
+    font-size: 1.2em;
     padding: 1.5em;
     border: 3px solid blue;
 }
@@ -94,6 +94,7 @@ button {
 
 
 #scribed {
+    width: 100%;
     border: 1px solid black;
     float: left;
     /*width: 60%;
@@ -138,4 +139,30 @@ button {
 
 .marker {
         background-color: red;
+}
+
+.display-symbol {
+    font-weight: 900;
+    text-align: center;
+    float: left;
+}
+.hotkey{
+    color: gray;
+    text-align: center;
+    float: left;
+    clear: left;
+}
+
+input {
+    font-size: 24px;
+    padding: 10px;
+    color: red;
+    text-shadow: 0px 0px 0px #000;
+    -webkit-text-fill-color: transparent;
+}
+
+input::-webkit-input-placeholder {
+    color:
+    text-shadow: none;
+    -webkit-text-fill-color: initial;
 }

@@ -11,15 +11,15 @@
     </div>
 
     <div class="nav-buttons">
-        <button (click)="markMove(-1)" *ngIf="rawStrings[lineIndex] != ''">&#x2190;</button>
-        <button (click)="markMove(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x2192;</button>
-        <button (click)="stretchMarked(+1)" *ngIf="rawStrings[lineIndex] != ''">&#x21c9;</button>
-        <button (click)="crossout()" *ngIf="rawStrings[lineIndex] != ''"><del>100</del></button> 
-        <button (click)="remove()" *ngIf="rawStrings[lineIndex] != ''">remove</button>
-        <button (click)="newCopy()" *ngIf="rawStrings[lineIndex] != ''">new copy</button>
-        <button (click)="paste()" *ngIf="chosen != ''">paste: {{chosen}}</button> 
+        <button (click)="markMove(-1)" [disabled]="rawStrings[lineIndex] == ''">&#x2190;</button>
+        <button (click)="markMove(+1)" [disabled]="rawStrings[lineIndex] == ''">&#x2192;</button>
+        <button (click)="stretchMarked(+1)" [disabled]="rawStrings[lineIndex] == ''">&#x21c9;</button>
+        <button (click)="crossout()" [disabled]="rawStrings[lineIndex] == ''"><del>100</del></button> 
+        <button (click)="remove()" [disabled]="rawStrings[lineIndex] == ''">remove</button>
+        <button (click)="newCopy()" [disabled]="rawStrings[lineIndex] == ''">new copy</button>
+        <button (click)="paste()" [disabled]="chosen == ''">paste: {{chosen}}</button> 
         <button (click)="undo()">Undo</button>
-        <button (click)="clear(handwriting)">Clear</button>
+        <button (click)="clear(handwriting)" [disabled]="rawStrings[lineIndex] == ''">Clear</button>
         <button (click)="vertical(-1)" [disabled]="lineIndex<=0">&#x2b06;</button> 
         <button (click)="vertical(+1)" [disabled]="lineIndex >= rawStrings.length-1">&#x2b07;</button> 
 
@@ -27,18 +27,19 @@
 </div>
 <div>
     <div id="operator-controls">
-        <button (click)="addSymbol('+')" >+<br/>p</button> 
-        <button (click)="addSymbol('-')" >-<br/>m</button> 
-        <button (click)="addSymbol('xx')" >x<br/>t</button> 
-        <button (click)="addSymbol('/')" >/<br/>d</button> 
-        <button (click)="addSymbol('=')" >=<br/>e</button> 
-        <button (click)="addSymbol('(')" >(<br/>o</button> 
-        <button (click)="addSymbol(')')" >)<br/>c</button> 
-        <button (click)="addSymbol(' ')" >&#x2423;<br>&nbsp;</button>
-        <button (click)="addSymbol('^')" >y &#x02e3;<br/>^</button> 
-        <button (click)="addSymbol('sqrt')" >&#x221a;<br/>r</button> 
-        <button (click)="addSymbol('x')" >𝑥<br/>x</button> 
-        <button (click)="addSymbol('y')" >𝑦<br/>y</button> 
+        <button (click)="addSymbol('+')" ><span class="display-symbol">+</span><span *ngIf="keystrokeTranslate" class="hotkey">p</span></button> 
+        <button (click)="addSymbol('-')" ><span class="display-symbol">-</span><span *ngIf="keystrokeTranslate" class="hotkey">m</span></button> 
+        <button (click)="addSymbol('xx')" ><span class="display-symbol">x</span><span *ngIf="keystrokeTranslate" class="hotkey">t</span></button> 
+        <button (click)="addSymbol('/')" ><span class="display-symbol">/</span><span *ngIf="keystrokeTranslate" class="hotkey">d</span></button> 
+        <button (click)="addSymbol('=')" ><span class="display-symbol">=</span><span *ngIf="keystrokeTranslate" class="hotkey">e</span></button> 
+        <button (click)="addSymbol('(')" ><span class="display-symbol">(</span><span *ngIf="keystrokeTranslate" class="hotkey">o</span></button> 
+        <button (click)="addSymbol(')')" ><span class="display-symbol">)</span><span *ngIf="keystrokeTranslate" class="hotkey">c</span></button> 
+        <button (click)="addSymbol(' ')" ><span class="display-symbol">space</span><span *ngIf="keystrokeTranslate" class="hotkey">space</span></button>
+        <button (click)="addSymbol('^')" ><span class="display-symbol">y &#x02e3;</span><span *ngIf="keystrokeTranslate" class="hotkey">s</span></button> 
+        <button (click)="addSymbol('sqrt')" ><span class="display-symbol">&#x221a;</span><span *ngIf="keystrokeTranslate" class="hotkey">r</span></button> 
+        <button (click)="addSymbol('x')" ><span class="display-symbol">𝑥</span><span *ngIf="keystrokeTranslate" class="hotkey">x</span></button> 
+        <button (click)="addSymbol('y')" ><span class="display-symbol">𝑦</span><span *ngIf="keystrokeTranslate" class="hotkey">y</span></button> 
+        <button (click)="keystrokeTranslate = ! keystrokeTranslate">Translate Keys</button> 
         
         <div id="number-controls">
             <button (click)="addSymbol('.')" >.</button>
@@ -60,7 +61,7 @@
 
     <div id="hand-controls">
 
-        <input id="raw-input" [ngModel]="markedStrings[lineIndex]"  />
+        <input id="marked-input" [ngModel]="markedStrings[lineIndex]"  />
 
         <div id="tokens" round-scroller>
             <div *ngFor="let token of tokens ;let i = index"
