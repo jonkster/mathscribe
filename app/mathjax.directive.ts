@@ -12,10 +12,16 @@ export class MathJaxDirective {
         el.nativeElement.style.backgroundColor = '#e0e0e0';
     }
 
+    position() {
+        var el = this.el.nativeElement;
+    }
 
     ngOnChanges(changes: { [propName: string]: SimpleChange }) {  
-        this.el.nativeElement.style.backgroundColor = 'white';
-        this.el.nativeElement.innerHTML = '`' + this.mathString + '`';
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.el.nativeElement]);
+        var el = this.el.nativeElement;
+        el.style.backgroundColor = 'white';
+        el.innerHTML = '`' + this.mathString + '`';
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, el]);
+        var obj = this;
+        MathJax.Hub.Queue([function() { obj.position(); }, MathJax.Hub]);
     }
 }

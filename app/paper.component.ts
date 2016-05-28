@@ -1,4 +1,4 @@
-import { Component, OnInit, SimpleChange, ViewChild } from '@angular/core';
+import { Component, OnInit, SimpleChange, ViewChild, Input } from '@angular/core';
 import { MathJaxDirective } from './mathjax.directive';
 import { MyWritingDirective } from './writing.directive';
 
@@ -20,6 +20,7 @@ declare var MathJax: any;
 export class PaperComponent {
     @ViewChild(MyWritingDirective) handwritingDirective: MyWritingDirective;
     @ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
+    @ViewChild('mainFocus') mainFocus;
 
     mathjaxMarker = 'color{red}';
     markerLength = this.mathjaxMarker.length;
@@ -102,6 +103,7 @@ export class PaperComponent {
             this.tokenise(this.rawStrings[this.lineIndex]);
             this.addMarker();    
         }
+        this.mainFocus.nativeElement.focus();
     };
 
     correct(x) { this.handwritingDirective.clear(); this.rawStrings[this.lineIndex] = this.rawStrings[this.lineIndex].slice(0, -1);  };
@@ -116,6 +118,14 @@ export class PaperComponent {
         }
         this.tokenise(this.rawStrings[this.lineIndex]);
         this.carouselPick = 0;
+        this.mainFocus.nativeElement.focus();
+    }
+
+    keyInput(ev) {
+        if (ev.keyCode == 80) {
+            console.log('p pushed!');
+        }
+        this.tokenise(this.rawStrings[this.lineIndex]);
     }
 
     newCopy() {
@@ -127,6 +137,7 @@ export class PaperComponent {
         this.markEndPos = 0;
         this.tokenise(this.rawStrings[this.lineIndex]);
         this.carouselPick = 0;
+        this.mainFocus.nativeElement.focus();
     }
 
     remove() {
@@ -140,6 +151,14 @@ export class PaperComponent {
         }
         this.markMove(1);
         this.addMarker();    
+    }
+
+    setLineClass(line) {
+            var cl = 'column-' + Math.floor(line / 4);
+            cl += ' row-' + (line % 4);
+            if (line == this.lineIndex)
+                cl += ' line-selected';
+            return cl;
     }
 
     unparseStructure() {
@@ -175,6 +194,8 @@ export class PaperComponent {
         st = st.replace(/\(}/, 'rArr}');
         st = st.replace(/\)\}/, 'lArr}');
         this.markedStrings[this.lineIndex] = st;
+        if (this.mainFocus != undefined)
+            this.mainFocus.nativeElement.focus();
     }
 
     setMarkerVisibility(flag) {
@@ -182,15 +203,20 @@ export class PaperComponent {
         this.addMarker();
     }
 
+    ngAfterViewInit() {
+        this.mainFocus.nativeElement.focus();
+    }
 
     ngOnInit() {
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,"myMathJax"]);
             this.tokenise(this.rawStrings[this.lineIndex]);
+
     }
 
     paste() {
         this.saveUndo();
         this.addSymbol(this.chosen);
+        this.mainFocus.nativeElement.focus();
     }
 
     markMove(amount) {
