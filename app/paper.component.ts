@@ -128,7 +128,7 @@ export class PaperComponent {
         var value = this.mainFocus.nativeElement.value;
         console.log(start, end, value);
         console.log('pushed!', String.fromCharCode(ev.keyCode));
-	if (this.translateKeys) {
+	if (this.keystrokeTranslate) {
 	    switch(ev.keyCode) {
 		case 80: 
 		    value = value.substring(0, start-1) + '+' + value.substring(end);  
