@@ -244,6 +244,10 @@ export class PaperComponent {
     }
 
     ngOnInit() {
+            // define extra chars here??
+            var am = MathJax.Hub.inputJax['math/asciimath'].AM;
+            am.define("!!","\u237f");
+            am.define("#","\u2007");
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,"myMathJax"]);
             this.tokenise(this.rawStrings[this.lineIndex]);
 
