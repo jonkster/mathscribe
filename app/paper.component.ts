@@ -22,11 +22,15 @@ export class PaperComponent {
     @ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
     @ViewChild('mainFocus') mainFocus;
 
-    mathjaxMarker = 'color{red}';
+    //caretSymbol = "\u237f";
+    caretSymbol = "\u2223";
+    mathjaxMarker = 'color{red}{ !! }';
+    markerIsMacro = false; // if true it will attempt to close {} after marker
     markerLength = this.mathjaxMarker.length;
 
     rawStructure = [];
-    rawStrings = ['x/22=3sqrt3 xx 2.2^6 - (3 xx y)'];
+    //rawStrings = ['x/22=3sqrt3 xx 2.2^6 - (3 xx y)'];
+    rawStrings = [];
     markerVisibility = [];
     undoBuffer = [];
 
@@ -45,20 +49,20 @@ export class PaperComponent {
         var end = this.markEndPos;
         for (var i = start; i < end+1; i++)
         {
-            if (this.rawStructure[i])
-                this.rawStructure[i].token = 'untouchable';
+            if (this.rawStructure[this.lineIndex][i])
+                this.rawStructure[this.lineIndex][i].token = 'untouchable';
         }
 
-        var termStart = this.rawStructure[start].term;
+        var termStart = this.rawStructure[this.lineIndex][start].term;
         if (! termStart.match(/cancel{/))
         {
-            this.rawStructure[start].term = 'cancel{' + termStart;
-            this.rawStructure[start].token = 'cancel';
+            this.rawStructure[this.lineIndex][start].term = 'cancel{' + termStart;
+            this.rawStructure[this.lineIndex][start].token = 'cancel';
         }
 
-        var termEnd = this.rawStructure[end].term;
+        var termEnd = this.rawStructure[this.lineIndex][end].term;
         if (! termEnd.match(/}/))
-            this.rawStructure[end].term += '}';
+            this.rawStructure[this.lineIndex][end].term += '}';
 
         this.markMove(1);
         this.addMarker();    
@@ -67,34 +71,35 @@ export class PaperComponent {
     addSymbol(sym) {
         this.saveUndo();
         var st = '';
-        if (this.rawStructure.length == 0) {
-            st = sym;
-        }
-        else {
-            for (var i = 0; i < this.rawStructure.length; i++) {
-                var item = this.rawStructure[i];
-                if (item.token != 'removed')
-                    st += item.term;
-
-                if (i == this.markEndPos) {
-                    if (sym == 'xx')
-                        st += ' ' + sym; 
-                    else
-                        st += sym
+        var old = true;
+        if (old) {
+            if (this.rawStructure[this.lineIndex].length == 0) {
+                st = sym;
+            }
+            else {
+                for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++) {
+                    var item = this.rawStructure[this.lineIndex][i];
+                    if (item.token != 'removed') {
+                        if (i == this.markStartPos) {
+                            st += sym
+                        }
+                        st += item.term;
+                    }
                 }
             }
+            //this.rawStrings[this.lineIndex] = st;
+            this.markMove(1);
+            this.tokenise(st);
+            //this.addMarker();    
+        } else {
         }
-        this.rawStrings[this.lineIndex] = st;
-        this.tokenise(this.rawStrings[this.lineIndex]);
-        this.markMove(1);
-        this.addMarker();    
     };
 
     clear() {
         this.saveUndo();
         var alreadyClear = (this.rawStrings[this.lineIndex] == '');
         this.handwritingDirective.clear();
-        this.rawStructure = [];
+        this.rawStructure[this.lineIndex] = [];
         this.rawStrings[this.lineIndex] = '';
         this.markedStrings[this.lineIndex] = '';
         if ((this.lineIndex > 0) && alreadyClear) {
@@ -102,22 +107,28 @@ export class PaperComponent {
             this.markedStrings.pop();
             this.lineIndex--;
             this.tokenise(this.rawStrings[this.lineIndex]);
-            this.addMarker();    
+            //this.addMarker();    
         }
         this.mainFocus.nativeElement.focus();
     };
 
     correct(x) { this.handwritingDirective.clear(); this.rawStrings[this.lineIndex] = this.rawStrings[this.lineIndex].slice(0, -1);  };
 
+    cursorToEnd() {
+        if (this.rawStructure[this.lineIndex].length > 0)
+            this.markStartPos = this.rawStructure[this.lineIndex].length-1;
+    }
 
     enter() {
         this.setMarkerVisibility(false);
+        var st = this.unparseStructure();
         this.lineIndex += 1;
-        if (this.lineIndex >= this.rawStrings.length) {
-            this.rawStrings.push('');
+        if (this.lineIndex >= this.rawStructure.length) {
             this.markedStrings.push('');
+            this.rawStructure.push([]);
         }
-        this.tokenise(this.rawStrings[this.lineIndex]);
+        this.tokenise(st);
+        this.cursorToEnd();
         this.mainFocus.nativeElement.focus();
     }
 
@@ -127,42 +138,132 @@ export class PaperComponent {
         var end =  this.mainFocus.nativeElement.selectionStart;
         var value = this.mainFocus.nativeElement.value;
         console.log(start, end, value);
-        console.log('pushed!', String.fromCharCode(ev.keyCode));
+        var ch = String.fromCharCode(ev.keyCode);
+        console.log('pushed!', ch);
 	if (this.keystrokeTranslate) {
 	    switch(ev.keyCode) {
-		case 80: 
-		    value = value.substring(0, start-1) + '+' + value.substring(end);  
+		case 88: 
+		    ch = 'x';  
 		    break;
+		case 89: 
+		    ch = 'y';  
+		    break;
+		case 90: 
+		    ch = 'y';  
+		    break;
+		case 80: 
+		    ch = '+';  
+		    break;
+		case 189:
 		case 77:
-		    value = value.substring(0, start-1) + '-' + value.substring(end);  
+		    ch = '-';  
 		    break;
 		case 84:
-		    value = value.substring(0, start-1) + ' xx ' + value.substring(end);  
+		    ch = 'xx';  
 		    break;
+		case 191:
 		case 68:
-		    value = value.substring(0, start-1) + '/' + value.substring(end);  
+		    ch = '/';  
 		    break;
+		case 187:
 		case 69:
-		    value = value.substring(0, start-1) + '=' + value.substring(end);  
+		    ch = '=';  
 		    break;
 		case 79:
-		    value = value.substring(0, start-1) + '(' + value.substring(end);  
+		    ch = '(';  
 		    break;
 		case 67:
-		    value = value.substring(0, start-1) + ')' + value.substring(end);  
+		    ch = ')';  
 		    break;
-		case 83:
-		    value = value.substring(0, start-1) + '^' + value.substring(end);  
+		case 85:
+		    ch = '^';  
 		    break;
 		case 82:
-		    value = value.substring(0, start-1) + 'sqrt' + value.substring(end);  
+		    ch = 'sqrt';  
 		    break;
 		case 13:
 		    this.enter();
+                    return;
+                    break;
+		case 35:
+		    this.markMove(1000);
+                    return;
+		case 36:
+		    this.markMove(-1000);
+                    return;
+		case 37:
+		    this.markMove(-1);
+                    return;
+                    break;
+		case 38:
+		    this.vertical(-1);
+                    return;
+                    break;
+		case 39:
+		    this.markMove(1);
+                    return;
+                    break;
+		case 40:
+		    this.vertical(1);
+                    return;
+                    break;
+		case 8:
+		    this.remove();
+                    return;
+                    break;
+                default:    
+                    if (event.shiftKey) {
+                        switch(ev.keyCode) {
+                            case 48:
+                                ch = ')';
+                                break;
+                            case 49:
+                                ch = '!';
+                                break;
+                            case 50:
+                                ch = '@';
+                                break;
+                            case 51:
+                                ch = '#';
+                                break;
+                            case 52:
+                                ch = '$';
+                                break;
+                            case 53:
+                                ch = '%';
+                                break;
+                            case 54:
+                                ch = '^';
+                                break;
+                            case 55:
+                                ch = '&';
+                                break;
+                            case 56:
+                                ch = '*';
+                                break;
+                            case 57:
+                                ch = '(';
+                                break;
+                            case 187:
+                                ch = '+';
+                                break;
+                            case 188:
+                                ch = '<';
+                                break;
+                            case 189:
+                                ch = '_';
+                                break;
+                            case 190:
+                                ch = '>';
+                                break;
+                            default:
+		                break;
+                        }
+                    }
+		    break;
 	    }
 	}
-        this.rawStrings[this.lineIndex] = value;
-        this.tokenise(this.rawStrings[this.lineIndex]);
+        this.addSymbol(ch);
     }
 
     newCopy() {
@@ -179,14 +280,17 @@ export class PaperComponent {
     remove() {
         this.saveUndo();
         var start = this.markStartPos;
-        var end = this.markEndPos;
-        for (var i = start; i < end+1; i++)
+        if (start > 0)
         {
-            if (this.rawStructure[i])
-                this.rawStructure[i].token = 'removed';
+            this.rawStructure[this.lineIndex].splice(start-1, 1);
+            this.markMove(-1);
+            this.reparse();
         }
-        this.markMove(1);
-        this.addMarker();    
+    }
+
+    reparse() {
+        var st = this.unparseStructure();
+        this.tokenise(st);
     }
 
     setLineClass(line) {
@@ -199,9 +303,9 @@ export class PaperComponent {
 
     unparseStructure() {
         var st = '';
-        for (var i = 0; i < this.rawStructure.length; i++)
+        for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++)
         {
-            var item = this.rawStructure[i];
+            var item = this.rawStructure[this.lineIndex][i];
             if (item.token != 'removed')
                 st += item.term;
         }
@@ -210,25 +314,32 @@ export class PaperComponent {
 
     addMarker() {
         var st = '';
-        for (var i = 0; i < this.rawStructure.length; i++)
-        {
+        for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++) {
             if (this.markerVisibility[this.lineIndex] && i == this.markStartPos) {
-                st += this.mathjaxMarker + '{'; 
+                st += this.mathjaxMarker; 
+                if (this.markerIsMacro) {
+                    st += '{'; 
+                }
             }
 
-            var item = this.rawStructure[i];
-            if (item.token != 'removed')
+            var item = this.rawStructure[this.lineIndex][i];
+            if (item.token != 'removed') {
                 st += item.term;
+            }
 
-            if (this.markerVisibility[this.lineIndex] && i == this.markEndPos) {
-                st += '}'; 
+            if (this.markerIsMacro) {
+                if (this.markerVisibility[this.lineIndex] && i == this.markEndPos) {
+                    st += '}'; 
+                }
             }
         }
+        st = st.replace(/\^color{red}/, '^color{green}');
+
         // avoid breaking sqrt display if it is finished by selection curly
         // brace
-        st = st.replace(/sqrt}/, 'sqrtrArr}');
+        /*st = st.replace(/sqrt}/, 'sqrtrArr}');
         st = st.replace(/\(}/, 'rArr}');
-        st = st.replace(/\)\}/, 'lArr}');
+        st = st.replace(/\)\}/, 'lArr}');*/
         this.markedStrings[this.lineIndex] = st;
         if (this.mainFocus != undefined)
             this.mainFocus.nativeElement.focus();
@@ -246,10 +357,11 @@ export class PaperComponent {
     ngOnInit() {
             // define extra chars here??
             var am = MathJax.Hub.inputJax['math/asciimath'].AM;
-            am.define("!!","\u237f");
+            am.define("!!",this.caretSymbol);
             am.define("#","\u2007");
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,"myMathJax"]);
-            this.tokenise(this.rawStrings[this.lineIndex]);
+            this.rawStructure = [];
+            this.tokenise('');
 
     }
 
@@ -262,24 +374,25 @@ export class PaperComponent {
     markMove(amount) {
         this.saveUndo();
         this.markStartPos += amount;
-        if (this.markStartPos >= this.rawStructure.length)
+        
+        if (this.markStartPos > this.rawStructure[this.lineIndex].length)
         {
-            this.markStartPos = 0;
+            this.markStartPos = this.rawStructure[this.lineIndex].length;
         }
         if (this.markStartPos < 0)
         {
-            this.markStartPos = this.rawStructure.length - 1;
+            this.markStartPos = 0;
         }
         this.markEndPos = this.markStartPos;
 
         var p = this.markStartPos;
-        if (p < this.rawStructure.length-1)
+        if (p < this.rawStructure[this.lineIndex].length-1)
         {
             // skip any non selectable bits
             var dir = 1;
             if (amount < 0)
                 dir = -1;
-            var item = this.rawStructure[p];
+            var item = this.rawStructure[this.lineIndex][p];
             switch (item.token)
             {
                 case 'whitespace':
@@ -313,17 +426,9 @@ export class PaperComponent {
                 } else if (ch == '=') {
                     state = 'equals';
                 } else if (ch.match(/[0-9]/)) {
-                    if (state == 'number') {
-                        append = true;
-                    }
-                    state = 'number';
+                    state = 'digit';
                 } else if (ch == '.') {
-                    if (state == 'number') {
-                        append = true;
-                        state = 'number';
-                    } else {
-                        state = 'point';
-                    }
+                    state = 'point';
                 } else if (ch.match(/[-\*\+\/)\^]/)) {
                     state = 'operator';
                 } else if (lookAhead.match(/^xx/)) {
@@ -366,8 +471,8 @@ export class PaperComponent {
 
                 if (append) {
                     var p = rawStructure.length - 1;
-                    rawStructure[p].term += term;
-                    rawStructure[p].length += term.length;
+                    rawStructure.term += term;
+                    rawStructure.length += term.length;
                 } else {
                     rawStructure.push({
                         'token': state,
@@ -386,7 +491,7 @@ export class PaperComponent {
             'lineIndex' : this.lineIndex,
             'markStartPos' : this.markStartPos,
             'markEndPos' : this.markEndPos,
-            'rawStrings' : this.rawStrings.slice(0),
+            //'rawStrings' : this.rawStrings.slice(0),
             'rawStructure' : this.rawStructure.slice(0),
             'markedStrings' : this.markedStrings.slice(0)
         }
@@ -396,15 +501,15 @@ export class PaperComponent {
     stretchMarked(amount) {
         this.saveUndo();
         this.markEndPos += amount;
-        if (this.markEndPos > this.rawStructure.length)
+        if (this.markEndPos > this.rawStructure[this.lineIndex].length)
         {
-            this.markEndPos = this.rawStructure.length-1;
+            this.markEndPos = this.rawStructure[this.lineIndex].length-1;
         }
 
         var p = this.markEndPos;
-        if (p < this.rawStructure.length-1)
+        if (p < this.rawStructure[this.lineIndex].length-1)
         {
-            var item = this.rawStructure[p];
+            var item = this.rawStructure[this.lineIndex][p];
             switch (item.token)
             {
                 case 'whitespace':
@@ -440,7 +545,13 @@ export class PaperComponent {
     }
 
     tokenise(st) {   
-        this.rawStructure = this.parseInput(st);
+        if (! st) {
+            st = ' ';
+        }
+        if (! st.match(/\s$/)) {
+            st += ' ';
+        }
+        this.rawStructure[this.lineIndex] = this.parseInput(st);
         MathJax.Hub.Queue(["Typeset",MathJax.Hub,"ul"]);
         if (this.markerVisibility[this.lineIndex] == undefined) {
             this.markerVisibility[this.lineIndex] = true;
@@ -453,13 +564,13 @@ export class PaperComponent {
         var state = this.undoBuffer.pop();
         if (state) {
             this.lineIndex = state.lineIndex;
-            this.rawStrings = state.rawStrings;
+            //this.rawStrings = state.rawStrings;
             this.rawStructure = state.rawStructure;
             this.markStartPos = state.markStartPos;
             this.markEndPos = state.markEndPos;
             this.markedStrings = state.markedStrings;
-            this.tokenise(this.rawStrings[this.lineIndex]);
-            this.addMarker();    
+            this.reparse();
+            //this.addMarker();    
         }
     }
 
@@ -468,9 +579,11 @@ export class PaperComponent {
         this.lineIndex += amount;
         if (this.lineIndex < 0)
             this.lineIndex = 0;
-        if (this.lineIndex >= this.rawStrings.length -1)
-            this.lineIndex = this.rawStrings.length -1;
-        this.tokenise(this.rawStrings[this.lineIndex]);
+        if (this.lineIndex >= this.rawStructure.length -1)
+            this.lineIndex = this.rawStructure.length -1;
+
+        this.cursorToEnd();
+        this.reparse();
         this.setMarkerVisibility(true);
     }
 

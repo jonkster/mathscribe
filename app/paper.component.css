@@ -107,7 +107,15 @@ button {
 }
 
 #raw-input {
-    width: 80%;
+    background-color: transparent;
+    border: 0px;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    width:5px;
+    color:transparent;
+    cursor:default;
 }
 
 .carousel {
