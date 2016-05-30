@@ -59,6 +59,8 @@ export class PaperComponent {
         190: '>',
     };
 
+    buttonPadding = 1.5;
+
     keyMapSpecial = {
         8: function(obj) { obj.remove(); },
         13: function(obj) { obj.enter(); },

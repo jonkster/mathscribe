@@ -10,23 +10,45 @@
     </div>
 
     <div class="nav-buttons">
-        <button (click)="markMove(-1)" [disabled]="markedStrings[lineIndex] == ''">&#x2190;</button>
-        <button (click)="markMove(+1)" [disabled]="markedStrings[lineIndex] == ''">&#x2192;</button>
-        <button (click)="remove()" [disabled]="markedStrings[lineIndex] == ''">&#x232b;</button>
-        <button (click)="crossout()" [disabled]="markedStrings[lineIndex] == ''">&#x2192;&nbsp;<del>XXX</del></button> 
-        <button (click)="removeCrossout()" [disabled]="crossoutCount() == 0">&#x2326;&nbsp;<del>XXX</del></button> 
-        <button (click)="paste()" [disabled]="chosen == ''">paste: {{chosen}}</button> 
-        <button (click)="undo()">Undo</button>
-        <button (click)="clear(handwriting)" [disabled]="markedStrings[lineIndex] == ''">Clear</button>
-        <button (click)="vertical(-1)" [disabled]="lineIndex<=0">&#x2b06;</button> 
-        <button (click)="vertical(+1)" [disabled]="lineIndex >= markedStrings.length-1">&#x2b07;</button> 
+        <button (click)="markMove(-1)"
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="markedStrings[lineIndex] == ''">&#x2190;</button>
+        <button (click)="markMove(+1)" 
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="markedStrings[lineIndex] == ''">&#x2192;</button>
+        <button (click)="remove()" 
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="markedStrings[lineIndex] == ''">&#x232b;</button>
+        <button (click)="crossout()" 
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="markedStrings[lineIndex] == ''">&#x2192;&nbsp;<del>XXX</del></button> 
+        <button (click)="removeCrossout()" 
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="crossoutCount() == 0">&#x2326;&nbsp;<del>XXX</del></button> 
+        <button (click)="paste()"
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="chosen == ''">paste: {{chosen}}</button> 
+        <button (click)="undo()"
+            [style.padding]="buttonPadding + 'em'"
+            >Undo</button>
+        <button (click)="clear(handwriting)" 
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="markedStrings[lineIndex] == ''">Clear</button>
+        <button (click)="vertical(-1)"
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="lineIndex<=0">&#x2b06;</button> 
+        <button (click)="vertical(+1)" 
+            [style.padding]="buttonPadding + 'em'"
+            [disabled]="lineIndex >= markedStrings.length-1">&#x2b07;</button> 
 
     </div>
 </div>
 <div>
     <div id="operator-controls">
         <button *ngFor="let keyCode of simpleKeyMaps; let line = index"
-            (click)="addSymbol(keyMapSimple[keyCode])" >
+            (click)="addSymbol(keyMapSimple[keyCode])"
+            [style.padding]="buttonPadding + 'em'"
+            >
             {{keyMap}}<span class="display-symbol" [innerHTML]="keyCodeToSymbol(keyCode)"></span><span *ngIf="keystrokeTranslate" class="hotkey" [innerHTML]="keyCodeToKey(keyCode)"></span>
         </button>
 
@@ -45,18 +67,49 @@
         <button (click)="keystrokeTranslate = ! keystrokeTranslate">Translate Keys</button> 
         
         <div id="number-controls">
-            <button (click)="addSymbol('.')" >.</button>
-            <button (click)="addSymbol('0')" >0</button> 
-            <button (click)="addSymbol('1')" >1</button> 
-            <button (click)="addSymbol('2')" >2</button> 
-            <button (click)="addSymbol('3')" >3</button> 
-            <button (click)="addSymbol('4')" >4</button> 
-            <button (click)="addSymbol('5')" >5</button> 
-            <button (click)="addSymbol('6')" >6</button> 
-            <button (click)="addSymbol('7')" >7</button> 
-            <button (click)="addSymbol('8')" >8</button> 
-            <button (click)="addSymbol('9')" >9</button> 
-            <button (click)="enter()" >Enter</button> 
+            <button (click)="addSymbol('.')"
+                [style.padding]="buttonPadding + 'em'"
+                >.</button>
+            <button (click)="addSymbol('0')"
+                [style.padding]="buttonPadding + 'em'"
+                >0</button> 
+            <button (click)="addSymbol('1')"
+                [style.padding]="buttonPadding + 'em'"
+             >1</button> 
+            <button (click)="addSymbol('2')"
+                [style.padding]="buttonPadding + 'em'"
+             >2</button> 
+            <button (click)="addSymbol('3')"
+                [style.padding]="buttonPadding + 'em'"
+             >3</button> 
+            <button (click)="addSymbol('4')"
+                [style.padding]="buttonPadding + 'em'"
+             >4</button> 
+            <button (click)="addSymbol('5')"
+                [style.padding]="buttonPadding + 'em'"
+             >5</button> 
+            <button (click)="addSymbol('6')"
+                [style.padding]="buttonPadding + 'em'"
+             >6</button> 
+            <button (click)="addSymbol('7')"
+                [style.padding]="buttonPadding + 'em'"
+             >7</button> 
+            <button (click)="addSymbol('8')"
+                [style.padding]="buttonPadding + 'em'"
+             >8</button> 
+            <button (click)="addSymbol('9')"
+                [style.padding]="buttonPadding + 'em'"
+             >9</button> 
+            <button (click)="enter()"
+                [style.padding]="buttonPadding + 'em'"
+             >Enter</button> 
+            <br/>
+            <button (click)="buttonPadding = buttonPadding - 0.1"
+                [style.padding]="buttonPadding + 'em'"
+                >smaller</button>
+            <button (click)="buttonPadding = buttonPadding + 0.1"
+                [style.padding]="buttonPadding + 'em'"
+             >bigger</button>
         <div>
     </div>
     <canvas myWriting id="hand-canvas"></canvas>
