@@ -22,15 +22,82 @@ export class PaperComponent {
     @ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
     @ViewChild('mainFocus') mainFocus;
 
+    keyMapSimple = {
+        32: '#',  
+        67: ')',
+        //68: '/',
+        //69: '=',
+        //77: '-',
+        79: '(',
+        80: '+',
+        82: 'sqrt',
+        84: 'xx',
+        85: '^',
+        88: 'x',
+        89: 'y',
+        90: 'z',
+        187: '=',
+        189: '-',
+        191: '/',
+    };
+    simpleKeyMaps = Object.keys(this.keyMapSimple);
+
+    keyMapShifted = {
+        48: ')',
+        49: '!',
+        50: '@',
+        51: '#',
+        52: '$',
+        53: '%',
+        54: '^',
+        55: '&',
+        56: '*',
+        57: '(',
+        187: '+',
+        188: '<',
+        189: '_',
+        190: '>',
+    };
+
+    keyMapSpecial = {
+        8: function(obj) { obj.remove(); },
+        13: function(obj) { obj.enter(); },
+        35: function(obj) { obj.markMove(1000); },
+        36: function(obj) { obj.markMove(-1000); },
+        37: function(obj) { obj.markMove(-1); },
+        38: function(obj) { obj.vertical(-1); },
+        39: function(obj) { obj.markMove(1); },
+        40: function(obj) { obj.vertical(1); },
+        46: function(obj) { obj.removeNext(); },
+        220: function(obj) { obj.crossout(); },
+    };
+
+    keyCodeToKey(code) {
+        var key = String.fromCharCode(code);
+        key = key.replace(/ /, '[space]');
+        key = key.replace(/»/, '=');
+        key = key.replace(/½/, '-');
+        key = key.replace(/¿/, '/');
+        return key;
+    }
+
+    keyCodeToSymbol(code) {
+        var symbol = this.keyMapSimple[code];
+        symbol = symbol.replace(/#/, 'space');
+        symbol = symbol.replace(/xx/, 'X');
+        symbol = symbol.replace(/x/, '𝑥');
+        symbol = symbol.replace(/y/, '𝑦');
+        symbol = symbol.replace(/sqrt/, '&#x221a;');
+        symbol = symbol.replace(/\^/, 'y&#x02e3;');
+        return symbol;
+    }
+
     //caretSymbol = "\u237f";
-    caretSymbol = "\u2223";
+    caretSymbol = "\u2336";
     mathjaxMarker = 'color{red}{ !! }';
-    markerIsMacro = false; // if true it will attempt to close {} after marker
     markerLength = this.mathjaxMarker.length;
 
     rawStructure = [];
-    //rawStrings = ['x/22=3sqrt3 xx 2.2^6 - (3 xx y)'];
-    rawStrings = [];
     markerVisibility = [];
     undoBuffer = [];
 
@@ -46,77 +113,93 @@ export class PaperComponent {
     crossout() {
         this.saveUndo();
         var start = this.markStartPos;
-        var end = this.markEndPos;
-        for (var i = start; i < end+1; i++)
-        {
-            if (this.rawStructure[this.lineIndex][i])
-                this.rawStructure[this.lineIndex][i].token = 'untouchable';
+        if (start < this.rawStructure[this.lineIndex].length) {
+            var tokenToCross =  this.rawStructure[this.lineIndex][start];
+            if (tokenToCross.token != 'whitespace') {
+
+                if (this.rawStructure[this.lineIndex][start].token != 'cancel') {
+                    this.rawStructure[this.lineIndex][start].token = 'cancel';
+                } else {
+                    var term = this.rawStructure[this.lineIndex][start].term;
+                    var uncrossed = this.parseInput(term);
+                    this.rawStructure[this.lineIndex][start].token = uncrossed[0].token;
+                }
+
+                this.markMove(1);
+                this.addMarker();    
+            }
         }
-
-        var termStart = this.rawStructure[this.lineIndex][start].term;
-        if (! termStart.match(/cancel{/))
-        {
-            this.rawStructure[this.lineIndex][start].term = 'cancel{' + termStart;
-            this.rawStructure[this.lineIndex][start].token = 'cancel';
-        }
-
-        var termEnd = this.rawStructure[this.lineIndex][end].term;
-        if (! termEnd.match(/}/))
-            this.rawStructure[this.lineIndex][end].term += '}';
-
-        this.markMove(1);
-        this.addMarker();    
     };
 
     addSymbol(sym) {
         this.saveUndo();
         var st = '';
-        var old = true;
-        if (old) {
-            if (this.rawStructure[this.lineIndex].length == 0) {
-                st = sym;
-            }
-            else {
-                for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++) {
-                    var item = this.rawStructure[this.lineIndex][i];
-                    if (item.token != 'removed') {
-                        if (i == this.markStartPos) {
-                            st += sym
-                        }
-                        st += item.term;
+        var symbolAdded = false;
+        if (this.rawStructure[this.lineIndex].length == 0) {
+            st = sym;
+        }
+        else {
+            var prevCancel = false;
+            for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++) {
+                var item = this.rawStructure[this.lineIndex][i];
+                if (i == this.markStartPos) {
+                    st += sym;
+                    symbolAdded = true;
+                }
+
+                if (item.token != 'cancel') {
+                    if (prevCancel) {
+                        st += '}';
+                        prevCancel = false;
                     }
+                    st += item.term;
+                } else {
+                    if (! prevCancel) {
+                        st += 'cancel{';
+                        prevCancel = true;
+                    }
+                    st += item.term;
                 }
             }
-            //this.rawStrings[this.lineIndex] = st;
-            this.markMove(1);
-            this.tokenise(st);
-            //this.addMarker();    
-        } else {
+            if (! symbolAdded) {
+                st = st.replace(/\s$/g, '');
+                st += sym + ' ';
+            }
         }
-    };
+        this.markMove(1);
+        this.tokenise(st);
+        };
 
     clear() {
         this.saveUndo();
-        var alreadyClear = (this.rawStrings[this.lineIndex] == '');
+        var clear = this.isLineClear();
         this.handwritingDirective.clear();
         this.rawStructure[this.lineIndex] = [];
-        this.rawStrings[this.lineIndex] = '';
         this.markedStrings[this.lineIndex] = '';
-        if ((this.lineIndex > 0) && alreadyClear) {
-            this.rawStrings.pop();
+        if ((this.lineIndex > 0) && clear) {
             this.markedStrings.pop();
             this.lineIndex--;
-            this.tokenise(this.rawStrings[this.lineIndex]);
-            //this.addMarker();    
+            this.reparse();
         }
         this.mainFocus.nativeElement.focus();
     };
 
-    correct(x) { this.handwritingDirective.clear(); this.rawStrings[this.lineIndex] = this.rawStrings[this.lineIndex].slice(0, -1);  };
+    crossoutCount() {
+        var c = 0;
+        for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++)
+        {
+            var item = this.rawStructure[this.lineIndex][i];
+            if (item.token == 'cancel') {
+                c++;
+            }
+        }
+        return c;
+    }
+
+    /*correct(x) { this.handwritingDirective.clear(); this.rawStrings[this.lineIndex] = this.rawStrings[this.lineIndex].slice(0, -1);  };*/
 
     cursorToEnd() {
-        if (this.rawStructure[this.lineIndex].length > 0)
-            this.markStartPos = this.rawStructure[this.lineIndex].length-1;
+        this.markMove(1000);
     }
 
     enter() {
@@ -132,149 +215,33 @@ export class PaperComponent {
         this.mainFocus.nativeElement.focus();
     }
 
+    isLineClear() {
+        var st = this.unparseStructure();
+        return st == '';    
+    }
+
     keyInput(ev) {
-        console.log(this.mainFocus.value, ev);
         var start = this.mainFocus.nativeElement.selectionStart;
         var end =  this.mainFocus.nativeElement.selectionStart;
         var value = this.mainFocus.nativeElement.value;
-        console.log(start, end, value);
         var ch = String.fromCharCode(ev.keyCode);
-        console.log('pushed!', ch);
+        console.log(this.mainFocus.value, ev, 'pushed!', ch);
 	if (this.keystrokeTranslate) {
-	    switch(ev.keyCode) {
-		case 88: 
-		    ch = 'x';  
-		    break;
-		case 89: 
-		    ch = 'y';  
-		    break;
-		case 90: 
-		    ch = 'y';  
-		    break;
-		case 80: 
-		    ch = '+';  
-		    break;
-		case 189:
-		case 77:
-		    ch = '-';  
-		    break;
-		case 84:
-		    ch = 'xx';  
-		    break;
-		case 191:
-		case 68:
-		    ch = '/';  
-		    break;
-		case 187:
-		case 69:
-		    ch = '=';  
-		    break;
-		case 79:
-		    ch = '(';  
-		    break;
-		case 67:
-		    ch = ')';  
-		    break;
-		case 85:
-		    ch = '^';  
-		    break;
-		case 82:
-		    ch = 'sqrt';  
-		    break;
-		case 13:
-		    this.enter();
-                    return;
-                    break;
-		case 35:
-		    this.markMove(1000);
-                    return;
-		case 36:
-		    this.markMove(-1000);
-                    return;
-		case 37:
-		    this.markMove(-1);
-                    return;
-                    break;
-		case 38:
-		    this.vertical(-1);
-                    return;
-                    break;
-		case 39:
-		    this.markMove(1);
-                    return;
-                    break;
-		case 40:
-		    this.vertical(1);
-                    return;
-                    break;
-		case 8:
-		    this.remove();
-                    return;
-                    break;
-                default:    
-                    if (event.shiftKey) {
-                        switch(ev.keyCode) {
-                            case 48:
-                                ch = ')';
-                                break;
-                            case 49:
-                                ch = '!';
-                                break;
-                            case 50:
-                                ch = '@';
-                                break;
-                            case 51:
-                                ch = '#';
-                                break;
-                            case 52:
-                                ch = '$';
-                                break;
-                            case 53:
-                                ch = '%';
-                                break;
-                            case 54:
-                                ch = '^';
-                                break;
-                            case 55:
-                                ch = '&';
-                                break;
-                            case 56:
-                                ch = '*';
-                                break;
-                            case 57:
-                                ch = '(';
-                                break;
-                            case 187:
-                                ch = '+';
-                                break;
-                            case 188:
-                                ch = '<';
-                                break;
-                            case 189:
-                                ch = '_';
-                                break;
-                            case 190:
-                                ch = '>';
-                                break;
-                            default:
-		                break;
-                        }
-                    }
-		    break;
-	    }
-	}
-        this.addSymbol(ch);
-    }
-
-    newCopy() {
-        var newSt = this.unparseStructure();
-        this.setMarkerVisibility(false);
-        this.rawStrings.push(newSt);
-        this.lineIndex++;
-        this.markStartPos = 0;
-        this.markEndPos = 0;
-        this.tokenise(this.rawStrings[this.lineIndex]);
-        this.mainFocus.nativeElement.focus();
+            if (this.keyMapSpecial[ev.keyCode]) {
+                this.keyMapSpecial[ev.keyCode](this);
+                ch = '';
+            }
+            else {
+                if (ev.shiftKey && this.keyMapShifted[ev.keyCode]) {
+                    ch = this.keyMapShifted[ev.keyCode];
+                } else if (this.keyMapSimple[ev.keyCode]) {
+                    ch = this.keyMapSimple[ev.keyCode];
+                }
+            }
+        }
+        if (ch != '') {
+            this.addSymbol(ch);
+        }
     }
 
     remove() {
@@ -284,6 +251,17 @@ export class PaperComponent {
         {
             this.rawStructure[this.lineIndex].splice(start-1, 1);
             this.markMove(-1);
+            this.reparse();
+        }
+    }
+
+    removeNext() {
+        this.saveUndo();
+        var start = this.markStartPos+1;
+        if (start > 0)
+        {
+            this.rawStructure[this.lineIndex].splice(start-1, 1);
+            //this.markMove(-1);
             this.reparse();
         }
     }
@@ -301,45 +279,62 @@ export class PaperComponent {
             return cl;
     }
 
-    unparseStructure() {
+    unparseStructure(): string {
         var st = '';
         for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++)
         {
             var item = this.rawStructure[this.lineIndex][i];
-            if (item.token != 'removed')
+            if (item.token == 'cancel') {
+                st += 'cancel{' + item.term + '}';
+            } else {
                 st += item.term;
+            }
         }
+        st = st.replace(/^\s+|\s+$/g,'');
+        st = st.replace(/}cancel{/g,'');
         return st;        
     }
 
     addMarker() {
         var st = '';
+        var crossed = [];
+        var prevCancel = false;
+        var markerAdded = false;
         for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++) {
             if (this.markerVisibility[this.lineIndex] && i == this.markStartPos) {
+                markerAdded = true;
                 st += this.mathjaxMarker; 
-                if (this.markerIsMacro) {
-                    st += '{'; 
-                }
             }
 
             var item = this.rawStructure[this.lineIndex][i];
-            if (item.token != 'removed') {
+            if (item.token != 'cancel') {
+                if (prevCancel) {
+                    st += '}';
+                    prevCancel = false;
+                }
                 st += item.term;
+            } else {
+                if (! prevCancel) {
+                    st += 'cancel{';
+                    prevCancel = true;
+                    crossed = [];
+                }
+                st += item.term;
+                crossed.push(item.term);
             }
 
-            if (this.markerIsMacro) {
-                if (this.markerVisibility[this.lineIndex] && i == this.markEndPos) {
-                    st += '}'; 
-                }
-            }
+        }
+        if (! markerAdded && this.markerVisibility[this.lineIndex]) {
+                st += this.mathjaxMarker; 
         }
         st = st.replace(/\^color{red}/, '^color{green}');
+        st = st.replace(/#+([\/\+\*-\^])/, "$1");
+        st = st.replace(/([\/\+\*-\^])#+/, "$1");
+        if (crossed.length > 0) {
+                this.chosen = crossed.join('');
+                this.chosen = this.chosen.replace(/cancel{(.*)}/, "$1");
+        }
 
-        // avoid breaking sqrt display if it is finished by selection curly
-        // brace
-        /*st = st.replace(/sqrt}/, 'sqrtrArr}');
-        st = st.replace(/\(}/, 'rArr}');
-        st = st.replace(/\)\}/, 'lArr}');*/
         this.markedStrings[this.lineIndex] = st;
         if (this.mainFocus != undefined)
             this.mainFocus.nativeElement.focus();
@@ -385,7 +380,8 @@ export class PaperComponent {
         }
         this.markEndPos = this.markStartPos;
 
-        var p = this.markStartPos;
+        /*var p = this.markStartPos;
+        
         if (p < this.rawStructure[this.lineIndex].length-1)
         {
             // skip any non selectable bits
@@ -396,14 +392,14 @@ export class PaperComponent {
             switch (item.token)
             {
                 case 'whitespace':
-                case 'untouchable':
-                case 'removed':
+                //case 'cancel':
+                //case 'removed':
                 case 'openCurly':
                 case 'closeCurly':
                     this.markMove(dir);
                     break;
             }
-        }
+        }*/
 
         this.addMarker();
         return;
@@ -416,7 +412,6 @@ export class PaperComponent {
         if (st) {
             for (var i = 0; i < st.length; i++)
             {
-                var append = false;
                 var start = i;
                 var ch = st[i];
                 var lookAhead = st.substring(i);
@@ -468,30 +463,30 @@ export class PaperComponent {
                 if (end >= st.length) {
                     term = st.substring(start);
                 }
+                term = term.replace(/cancel{(.*)}/, "$1", 'g');
 
-                if (append) {
-                    var p = rawStructure.length - 1;
-                    rawStructure.term += term;
-                    rawStructure.length += term.length;
-                } else {
-                    rawStructure.push({
-                        'token': state,
-                        'term': term,
-                        'start': start,
-                        'length': term.length
-                    });
-                }
+                rawStructure.push({
+                    'token': state,
+                    'term': term,
+                    'start': start,
+                    'length': term.length
+                });
             }
         }
         return rawStructure;
     }
+
+    removeCrossout() {
+        var st = this.unparseStructure();
+        st = st.replace(/cancel{.*?}/g, '');
+        this.tokenise(st);
+    };
 
     saveUndo() {
         var undoRec = {
             'lineIndex' : this.lineIndex,
             'markStartPos' : this.markStartPos,
             'markEndPos' : this.markEndPos,
-            //'rawStrings' : this.rawStrings.slice(0),
             'rawStructure' : this.rawStructure.slice(0),
             'markedStrings' : this.markedStrings.slice(0)
         }
@@ -513,7 +508,7 @@ export class PaperComponent {
             switch (item.token)
             {
                 case 'whitespace':
-                case 'untouchable':
+                case 'cancel':
                 case 'removed':
                 case 'cancel':
                 case 'openCurly':
@@ -564,13 +559,11 @@ export class PaperComponent {
         var state = this.undoBuffer.pop();
         if (state) {
             this.lineIndex = state.lineIndex;
-            //this.rawStrings = state.rawStrings;
             this.rawStructure = state.rawStructure;
             this.markStartPos = state.markStartPos;
             this.markEndPos = state.markEndPos;
             this.markedStrings = state.markedStrings;
             this.reparse();
-            //this.addMarker();    
         }
     }
 

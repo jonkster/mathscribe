@@ -1,6 +1,5 @@
-<input id="raw-input" #mainFocus (keydown)="keyInput($event)" [(ngModel)]="rawStrings[lineIndex]"  />
+<input id="raw-input" #mainFocus (keydown)="keyInput($event)"  />
 <div id="scribed">
-
     <div class="pretty">
         <div *ngFor="let markedString of markedStrings; let line = index"
             myMathJax
@@ -11,34 +10,38 @@
     </div>
 
     <div class="nav-buttons">
-        <button (click)="markMove(-1)" [disabled]="rawStrings[lineIndex] == ''">&#x2190;</button>
-        <button (click)="markMove(+1)" [disabled]="rawStrings[lineIndex] == ''">&#x2192;</button>
-        <!-- <button (click)="stretchMarked(+1)" [disabled]="rawStrings[lineIndex] == ''">&#x21c9;</button> -->
-        <button (click)="remove()" [disabled]="rawStrings[lineIndex] == ''">&#x232b;</button>
-        <button (click)="crossout()" [disabled]="rawStrings[lineIndex] == ''"><del>100</del></button> 
-        <button (click)="newCopy()" [disabled]="rawStrings[lineIndex] == ''">new copy</button>
+        <button (click)="markMove(-1)" [disabled]="markedStrings[lineIndex] == ''">&#x2190;</button>
+        <button (click)="markMove(+1)" [disabled]="markedStrings[lineIndex] == ''">&#x2192;</button>
+        <button (click)="remove()" [disabled]="markedStrings[lineIndex] == ''">&#x232b;</button>
+        <button (click)="crossout()" [disabled]="markedStrings[lineIndex] == ''">&#x2192;&nbsp;<del>XXX</del></button> 
+        <button (click)="removeCrossout()" [disabled]="crossoutCount() == 0">&#x2326;&nbsp;<del>XXX</del></button> 
         <button (click)="paste()" [disabled]="chosen == ''">paste: {{chosen}}</button> 
         <button (click)="undo()">Undo</button>
-        <button (click)="clear(handwriting)" [disabled]="rawStrings[lineIndex] == ''">Clear</button>
+        <button (click)="clear(handwriting)" [disabled]="markedStrings[lineIndex] == ''">Clear</button>
         <button (click)="vertical(-1)" [disabled]="lineIndex<=0">&#x2b06;</button> 
-        <button (click)="vertical(+1)" [disabled]="lineIndex >= rawStrings.length-1">&#x2b07;</button> 
+        <button (click)="vertical(+1)" [disabled]="lineIndex >= markedStrings.length-1">&#x2b07;</button> 
 
     </div>
 </div>
 <div>
     <div id="operator-controls">
-        <button (click)="addSymbol('+')" ><span class="display-symbol">+</span><span *ngIf="keystrokeTranslate" class="hotkey">p</span></button> 
-        <button (click)="addSymbol('-')" ><span class="display-symbol">-</span><span *ngIf="keystrokeTranslate" class="hotkey">m</span></button> 
+        <button *ngFor="let keyCode of simpleKeyMaps; let line = index"
+            (click)="addSymbol(keyMapSimple[keyCode])" >
+            {{keyMap}}<span class="display-symbol" [innerHTML]="keyCodeToSymbol(keyCode)"></span><span *ngIf="keystrokeTranslate" class="hotkey" [innerHTML]="keyCodeToKey(keyCode)"></span>
+        </button>
+
+        <!--<button (click)="addSymbol('+')" ><span class="display-symbol">+</span><span *ngIf="keystrokeTranslate" class="hotkey">p</span></button> 
+        <button (click)="addSymbol('-')" ><span class="display-symbol">-</span><span *ngIf="keystrokeTranslate" class="hotkey">-</span></button> 
         <button (click)="addSymbol('xx')" ><span class="display-symbol">x</span><span *ngIf="keystrokeTranslate" class="hotkey">t</span></button> 
-        <button (click)="addSymbol('/')" ><span class="display-symbol">/</span><span *ngIf="keystrokeTranslate" class="hotkey">d</span></button> 
-        <button (click)="addSymbol('=')" ><span class="display-symbol">=</span><span *ngIf="keystrokeTranslate" class="hotkey">e</span></button> 
+        <button (click)="addSymbol('/')" ><span class="display-symbol">/</span><span *ngIf="keystrokeTranslate" class="hotkey">/</span></button> 
+        <button (click)="addSymbol('=')" ><span class="display-symbol">=</span><span *ngIf="keystrokeTranslate" class="hotkey">=</span></button> 
         <button (click)="addSymbol('(')" ><span class="display-symbol">(</span><span *ngIf="keystrokeTranslate" class="hotkey">o</span></button> 
         <button (click)="addSymbol(')')" ><span class="display-symbol">)</span><span *ngIf="keystrokeTranslate" class="hotkey">c</span></button> 
-        <button (click)="addSymbol(' ')" ><span class="display-symbol">space</span><span *ngIf="keystrokeTranslate" class="hotkey">space</span></button>
+        <button (click)="addSymbol('#')" ><span class="display-symbol">space</span><span *ngIf="keystrokeTranslate" class="hotkey">space</span></button>
         <button (click)="addSymbol('^')" ><span class="display-symbol">y &#x02e3;</span><span *ngIf="keystrokeTranslate" class="hotkey">u</span></button> 
         <button (click)="addSymbol('sqrt')" ><span class="display-symbol">&#x221a;</span><span *ngIf="keystrokeTranslate" class="hotkey">r</span></button> 
         <button (click)="addSymbol('x')" ><span class="display-symbol">𝑥</span><span *ngIf="keystrokeTranslate" class="hotkey">x</span></button> 
-        <button (click)="addSymbol('y')" ><span class="display-symbol">𝑦</span><span *ngIf="keystrokeTranslate" class="hotkey">y</span></button> 
+        <button (click)="addSymbol('y')" ><span class="display-symbol">𝑦</span><span *ngIf="keystrokeTranslate" class="hotkey">y</span></button> -->
         <button (click)="keystrokeTranslate = ! keystrokeTranslate">Translate Keys</button> 
         
         <div id="number-controls">
@@ -54,7 +57,7 @@
             <button (click)="addSymbol('8')" >8</button> 
             <button (click)="addSymbol('9')" >9</button> 
             <button (click)="enter()" >Enter</button> 
-        </div>
+        <div>
     </div>
     <canvas myWriting id="hand-canvas"></canvas>
     <img id="hand-img"/>

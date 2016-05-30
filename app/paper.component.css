@@ -107,7 +107,7 @@ button {
 }
 
 #raw-input {
-    background-color: transparent;
+/*    background-color: transparent;
     border: 0px;
     outline: none;
     -webkit-box-shadow: none;
@@ -115,7 +115,8 @@ button {
     box-shadow: none;
     width:5px;
     color:transparent;
-    cursor:default;
+    cursor:default;*/
+    width: 1em;
 }
 
 .carousel {
