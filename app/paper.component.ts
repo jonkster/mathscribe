@@ -94,6 +94,9 @@ export class PaperComponent {
         return symbol;
     }
 
+    prettyHeight = 16;
+    linesPerCol = 4;
+
     //caretSymbol = "\u237f";
     caretSymbol = "\u2336";
     mathjaxMarker = 'color{red}{ !! }';
@@ -274,8 +277,8 @@ export class PaperComponent {
     }
 
     setLineClass(line) {
-            var cl = 'column-' + Math.floor(line / 4);
-            cl += ' row-' + (line % 4);
+            var cl = 'column-' + Math.floor(line / this.linesPerCol);
+            cl += ' row-' + (line % this.linesPerCol);
             if (line == this.lineIndex)
                 cl += ' line-selected';
             return cl;

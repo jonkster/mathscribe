@@ -1,6 +1,8 @@
 <input id="raw-input" #mainFocus (keydown)="keyInput($event)"  />
 <div id="scribed">
-    <div class="pretty">
+    <div class="pretty"
+         [style.height]="prettyHeight + 'em'"
+        >
         <div *ngFor="let markedString of markedStrings; let line = index"
             myMathJax
             class="line-arithmetic"
@@ -104,10 +106,10 @@
                 [style.padding]="buttonPadding + 'em'"
              >Enter</button> 
             <br/>
-            <button (click)="buttonPadding = buttonPadding - 0.1"
+            <button (click)="buttonPadding = buttonPadding - 0.1; prettyHeight = prettyHeight - 1;"
                 [style.padding]="buttonPadding + 'em'"
                 >smaller</button>
-            <button (click)="buttonPadding = buttonPadding + 0.1"
+            <button (click)="buttonPadding = buttonPadding + 0.1; prettyHeight = prettyHeight + 1;"
                 [style.padding]="buttonPadding + 'em'"
              >bigger</button>
         <div>

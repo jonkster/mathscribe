@@ -86,7 +86,7 @@ button {
 .pretty {
     width: 100%;
     position: relative;
-    height: 17em;
+    height: 1em;
     background: url("./resources/background.jpg");
     border: 1px solid black;
     overflow: auto;
