@@ -1,6 +1,8 @@
-import { Component, OnInit, SimpleChange, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, SimpleChange, ViewChild, ViewChildren, Input } from '@angular/core';
 import { MathJaxDirective } from './mathjax.directive';
 import { MyWritingDirective } from './writing.directive';
+import { JkOperatorButtonComponent } from './jkoperator.component';
+import { JkControlButtonComponent } from './jkcontrol.component';
 
 declare var MathJax: any;
 
@@ -8,92 +10,17 @@ declare var MathJax: any;
   selector: 'my-paper',
   templateUrl: 'app/paper.component.html',
   styleUrls: ['app/paper.component.css'],
-  directives: [  MathJaxDirective, MyWritingDirective ],
+  directives: [  MathJaxDirective, MyWritingDirective, JkOperatorButtonComponent , JkControlButtonComponent ],
   styles: [`
-    #raw-input {
-        color: #a0a0a0;
-        height: 1.5em;
-        font-size: 1.5em;
-    }
   `]
 })
 export class PaperComponent {
     @ViewChild(MyWritingDirective) handwritingDirective: MyWritingDirective;
-    @ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
-    @ViewChild('mainFocus') mainFocus;
-
-    keyMapSimple = {
-        32: '#',  
-        67: ')',
-        //68: '/',
-        //69: '=',
-        //77: '-',
-        79: '(',
-        80: '+',
-        82: 'sqrt',
-        84: 'xx',
-        85: '^',
-        88: 'x',
-        89: 'y',
-        90: 'z',
-        187: '=',
-        189: '-',
-        191: '/',
-    };
-    simpleKeyMaps = Object.keys(this.keyMapSimple);
-
-    keyMapShifted = {
-        48: ')',
-        49: '!',
-        50: '@',
-        51: '#',
-        52: '$',
-        53: '%',
-        54: '^',
-        55: '&',
-        56: '*',
-        57: '(',
-        187: '+',
-        188: '<',
-        189: '_',
-        190: '>',
-    };
+    //@ViewChild(MathJaxDirective) mathjDirective: MathJaxDirective;
+    @ViewChildren(JkOperatorButtonComponent) operatorButtons;
+    @ViewChildren(JkControlButtonComponent) controlButtons;
 
     buttonPadding = 1.5;
-
-    keyMapSpecial = {
-        8: function(obj) { obj.remove(); },
-        13: function(obj) { obj.enter(); },
-        35: function(obj) { obj.markMove(1000); },
-        36: function(obj) { obj.markMove(-1000); },
-        37: function(obj) { obj.markMove(-1); },
-        38: function(obj) { obj.vertical(-1); },
-        39: function(obj) { obj.markMove(1); },
-        40: function(obj) { obj.vertical(1); },
-        46: function(obj) { obj.removeNext(); },
-        220: function(obj) { obj.crossout(); },
-    };
-
-    keyCodeToKey(code) {
-        var key = String.fromCharCode(code);
-        key = key.replace(/ /, '[space]');
-        key = key.replace(/»/, '=');
-        key = key.replace(/½/, '-');
-        key = key.replace(/¿/, '/');
-        return key;
-    }
-
-    keyCodeToSymbol(code) {
-        var symbol = this.keyMapSimple[code];
-        symbol = symbol.replace(/#/, 'space');
-        symbol = symbol.replace(/xx/, 'X');
-        symbol = symbol.replace(/x/, '𝑥');
-        symbol = symbol.replace(/y/, '𝑦');
-        symbol = symbol.replace(/sqrt/, '&#x221a;');
-        symbol = symbol.replace(/\^/, 'y&#x02e3;');
-        return symbol;
-    }
-
     prettyHeight = 16;
     linesPerCol = 4;
 
@@ -114,6 +41,107 @@ export class PaperComponent {
     chosen = '';
     knownTokens = [];
     tokens = [];
+
+    keyCodeTrans = {
+        8: { 'lower': 'backspace' , 'upper': '' },
+        9: { 'lower': 'tab' , 'upper': '' },
+        13: { 'lower': 'enter' , 'upper': '' },
+        16: { 'lower': 'shift' , 'upper': '' },
+        17: { 'lower': 'ctrl' , 'upper': '' },
+        18: { 'lower': 'alt' , 'upper': '' },
+        19: { 'lower': 'pause/break' , 'upper': '' },
+        20: { 'lower': 'caps lock' , 'upper': '' },
+        27: { 'lower': 'escape' , 'upper': '' },
+        33: { 'lower': 'page up' , 'upper': '' },
+        34: { 'lower': 'page down' , 'upper': '' },
+        35: { 'lower': 'end' , 'upper': '' },
+        36: { 'lower': 'home' , 'upper': '' },
+        37: { 'lower': 'left arrow' , 'upper': '' },
+        38: { 'lower': 'up arrow' , 'upper': '' },
+        39: { 'lower': 'right arrow' , 'upper': '' },
+        40: { 'lower': 'down arrow' , 'upper': '' },
+        45: { 'lower': 'insert' , 'upper': '' },
+        46: { 'lower': 'delete' , 'upper': '' },
+        48: { 'lower': '0' , 'upper': ')' },
+        49: { 'lower': '1' , 'upper': '!' },
+        50: { 'lower': '2' , 'upper': '@' },
+        51: { 'lower': '3' , 'upper': '#' },
+        52: { 'lower': '4' , 'upper': '$' },
+        53: { 'lower': '5' , 'upper': '%' },
+        54: { 'lower': '6' , 'upper': '^' },
+        55: { 'lower': '7' , 'upper': '&' },
+        56: { 'lower': '8' , 'upper': '*' },
+        57: { 'lower': '9' , 'upper': '(' },
+        65: { 'lower': 'a' , 'upper': 'A' },
+        66: { 'lower': 'b' , 'upper': 'B' },
+        67: { 'lower': 'c' , 'upper': 'C' },
+        68: { 'lower': 'd' , 'upper': 'D' },
+        69: { 'lower': 'e' , 'upper': 'E' },
+        70: { 'lower': 'f' , 'upper': 'F' },
+        71: { 'lower': 'g' , 'upper': 'G' },
+        72: { 'lower': 'h' , 'upper': 'H' },
+        73: { 'lower': 'i' , 'upper': 'I' },
+        74: { 'lower': 'j' , 'upper': 'J' },
+        75: { 'lower': 'k' , 'upper': 'K' },
+        76: { 'lower': 'l' , 'upper': 'L' },
+        77: { 'lower': 'm' , 'upper': 'M' },
+        78: { 'lower': 'n' , 'upper': 'N' },
+        79: { 'lower': 'o' , 'upper': 'O' },
+        80: { 'lower': 'p' , 'upper': 'P' },
+        81: { 'lower': 'q' , 'upper': 'Q' },
+        82: { 'lower': 'r' , 'upper': 'R' },
+        83: { 'lower': 's' , 'upper': 'S' },
+        84: { 'lower': 't' , 'upper': 'T' },
+        85: { 'lower': 'u' , 'upper': 'U' },
+        86: { 'lower': 'v' , 'upper': 'V' },
+        87: { 'lower': 'w' , 'upper': 'W' },
+        88: { 'lower': 'x' , 'upper': 'X' },
+        89: { 'lower': 'y' , 'upper': 'Y' },
+        90: { 'lower': 'z' , 'upper': 'Z' },
+        91: { 'lower': 'left window key' , 'upper': '' },
+        92: { 'lower': 'right window key' , 'upper': '' },
+        93: { 'lower': 'select key' , 'upper': '' },
+        96: { 'lower': 'numpad 0' , 'upper': '' },
+        97: { 'lower': 'numpad 1' , 'upper': '' },
+        98: { 'lower': 'numpad 2' , 'upper': '' },
+        99: { 'lower': 'numpad 3' , 'upper': '' },
+        100: { 'lower': 'numpad 4' , 'upper': '' },
+        101: { 'lower': 'numpad 5' , 'upper': '' },
+        102: { 'lower': 'numpad 6' , 'upper': '' },
+        103: { 'lower': 'numpad 7' , 'upper': '' },
+        104: { 'lower': 'numpad 8' , 'upper': '' },
+        105: { 'lower': 'numpad 9' , 'upper': '' },
+        106: { 'lower': 'multiply' , 'upper': '' },
+        107: { 'lower': 'add' , 'upper': '' },
+        109: { 'lower': 'subtract' , 'upper': '' },
+        110: { 'lower': 'decimal point' , 'upper': '' },
+        111: { 'lower': 'divide' , 'upper': '' },
+        112: { 'lower': 'f1' , 'upper': '' },
+        113: { 'lower': 'f2' , 'upper': '' },
+        114: { 'lower': 'f3' , 'upper': '' },
+        115: { 'lower': 'f4' , 'upper': '' },
+        116: { 'lower': 'f5' , 'upper': '' },
+        117: { 'lower': 'f6' , 'upper': '' },
+        118: { 'lower': 'f7' , 'upper': '' },
+        119: { 'lower': 'f8' , 'upper': '' },
+        120: { 'lower': 'f9' , 'upper': '' },
+        121: { 'lower': 'f10' , 'upper': '' },
+        122: { 'lower': 'f11' , 'upper': '' },
+        123: { 'lower': 'f12' , 'upper': '' },
+        144: { 'lower': 'num lock' , 'upper': '' },
+        145: { 'lower': 'scroll lock' , 'upper': '' },
+        186: { 'lower': ';' , 'upper': ':' },
+        187: { 'lower': '=' , 'upper': '+' },
+        188: { 'lower': ',' , 'upper': '<' },
+        189: { 'lower': '-' , 'upper': '_' },
+        190: { 'lower': '.' , 'upper': '>' },
+        191: { 'lower': '/' , 'upper': '?' },
+        192: { 'lower': '`' , 'upper': '~' },
+        219: { 'lower': '[' , 'upper': '{' },
+        220: { 'lower': '\\' , 'upper': '|' },
+        221: { 'lower': ']' , 'upper': '}' },
+        222: { 'lower': "'" , 'upper': '"' },
+    }
 
     crossout() {
         this.saveUndo();
@@ -177,16 +205,16 @@ export class PaperComponent {
 
     clear() {
         this.saveUndo();
-        var clear = this.isLineClear();
-        this.handwritingDirective.clear();
+        var isClear = this.lineIsEmpty();
+        
+        //this.handwritingDirective.clear();
         this.rawStructure[this.lineIndex] = [];
         this.markedStrings[this.lineIndex] = '';
-        if ((this.lineIndex > 0) && clear) {
+        if ((this.lineIndex > 0) && isClear) {
             this.markedStrings.pop();
             this.lineIndex--;
             this.reparse();
         }
-        this.mainFocus.nativeElement.focus();
     };
 
     crossoutCount() {
@@ -217,34 +245,33 @@ export class PaperComponent {
         }
         this.tokenise(st);
         this.cursorToEnd();
-        this.mainFocus.nativeElement.focus();
-    }
-
-    isLineClear() {
-        var st = this.unparseStructure();
-        return st == '';    
     }
 
     keyInput(ev) {
-        var start = this.mainFocus.nativeElement.selectionStart;
-        var end =  this.mainFocus.nativeElement.selectionStart;
-        var value = this.mainFocus.nativeElement.value;
-        var ch = String.fromCharCode(ev.keyCode);
-        console.log(this.mainFocus.value, ev, 'pushed!', ch);
-	if (this.keystrokeTranslate) {
-            if (this.keyMapSpecial[ev.keyCode]) {
-                this.keyMapSpecial[ev.keyCode](this);
-                ch = '';
-            }
-            else {
-                if (ev.shiftKey && this.keyMapShifted[ev.keyCode]) {
-                    ch = this.keyMapShifted[ev.keyCode];
-                } else if (this.keyMapSimple[ev.keyCode]) {
-                    ch = this.keyMapSimple[ev.keyCode];
-                }
+        var key = this.keyCodeTrans[ev.which];
+        if (key.lower.match(/shift|alt|ctrl/)) {
+            return false;
+        }
+        var ch = key.lower;
+        if (ev.shiftKey && key.upper != '') {
+            ch = key.upper;
+        }
+        console.log(ev, ch);
+        var buttons = this.operatorButtons.toArray();
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].hotkey(ch)) {
+                ev.stopPropagation();
+                return;
             }
         }
-        if (ch != '') {
+        var controls = this.controlButtons.toArray();
+        for (var i = 0; i < controls.length; i++) {
+            if (controls[i].hotkey(ch)) {
+                ev.stopPropagation();
+                return;
+            }
+        }
+        if (key.upper != '') {
             this.addSymbol(ch);
         }
     }
@@ -341,8 +368,6 @@ export class PaperComponent {
         }
 
         this.markedStrings[this.lineIndex] = st;
-        if (this.mainFocus != undefined)
-            this.mainFocus.nativeElement.focus();
     }
 
     setMarkerVisibility(flag) {
@@ -350,8 +375,13 @@ export class PaperComponent {
         this.addMarker();
     }
 
+    lineIsEmpty() {
+        var st = this.unparseStructure();
+        st = st.replace(/\s/g, '');
+        return (st.length == 0);
+    }
+
     ngAfterViewInit() {
-        this.mainFocus.nativeElement.focus();
     }
 
     ngOnInit() {
@@ -368,7 +398,6 @@ export class PaperComponent {
     paste() {
         this.saveUndo();
         this.addSymbol(this.chosen);
-        this.mainFocus.nativeElement.focus();
     }
 
     markMove(amount) {
@@ -531,6 +560,14 @@ export class PaperComponent {
         }
         this.addMarker();
         return;
+    }
+
+    toggleHotkeys() {
+        this.keystrokeTranslate = ! this.keystrokeTranslate;
+        var buttons = this.operatorButtons.toArray();
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].setEnableHotkey(this.keystrokeTranslate);
+        }
     }
 
     tokensAdd(term, position, tokens) {

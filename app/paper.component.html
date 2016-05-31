@@ -1,5 +1,4 @@
-<input id="raw-input" #mainFocus (keydown)="keyInput($event)"  />
-<div id="scribed">
+<div id="scribed" (window:keydown)="keyInput($event)" >
     <div class="pretty"
          [style.height]="prettyHeight + 'em'"
         >
@@ -12,7 +11,41 @@
     </div>
 
     <div class="nav-buttons">
-        <button (click)="markMove(-1)"
+        <jk-control-button [control]="'clear'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="clear()"></jk-control-button>
+        <jk-control-button [control]="'left'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="markMove(-1)"></jk-control-button>
+        <jk-control-button [control]="'right'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="markMove(1)"></jk-control-button>
+        <jk-control-button [control]="'deleteLeft'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="remove()"></jk-control-button>
+        <jk-control-button [control]="'deleteRight'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="removeNext()"></jk-control-button>
+        <jk-control-button [control]="'crossOut'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="crossout()"></jk-control-button>
+        <jk-control-button [control]="'deleteCrossed'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="removeCrossout()"></jk-control-button>
+        <jk-control-button [control]="'paste'"
+                    [disabled]="chosen == ''"
+                    (notify)="paste()"></jk-control-button>
+        <jk-control-button [control]="'undo'"
+                    [disabled]="undoBuffer.length > 0"
+                    (notify)="undo()"></jk-control-button>
+        <jk-control-button [control]="'up'"
+                    [disabled]="lineIndex<=0"
+                    (notify)="vertical(-1)"></jk-control-button>
+        <jk-control-button [control]="'down'"
+                    [disabled]="lineIndex >= markedStrings.length-1"
+                    (notify)="vertical(1)"></jk-control-button>
+
+        <!--<button (click)="markMove(-1)"
             [style.padding]="buttonPadding + 'em'"
             [disabled]="markedStrings[lineIndex] == ''">&#x2190;</button>
         <button (click)="markMove(+1)" 
@@ -23,8 +56,8 @@
             [disabled]="markedStrings[lineIndex] == ''">&#x232b;</button>
         <button (click)="crossout()" 
             [style.padding]="buttonPadding + 'em'"
-            [disabled]="markedStrings[lineIndex] == ''">&#x2192;&nbsp;<del>XXX</del></button> 
-        <button (click)="removeCrossout()" 
+            [disabled]="markedStrings[lineIndex] == ''">&#x2192;&nbsp;<del>XXX</del></button> -->
+        <!--<button (click)="removeCrossout()" 
             [style.padding]="buttonPadding + 'em'"
             [disabled]="crossoutCount() == 0">&#x2326;&nbsp;<del>XXX</del></button> 
         <button (click)="paste()"
@@ -41,70 +74,44 @@
             [disabled]="lineIndex<=0">&#x2b06;</button> 
         <button (click)="vertical(+1)" 
             [style.padding]="buttonPadding + 'em'"
-            [disabled]="lineIndex >= markedStrings.length-1">&#x2b07;</button> 
+         [disabled]="lineIndex >= markedStrings.length-1">&#x2b07;</button> -->
 
     </div>
 </div>
 <div>
     <div id="operator-controls">
-        <button *ngFor="let keyCode of simpleKeyMaps; let line = index"
-            (click)="addSymbol(keyMapSimple[keyCode])"
-            [style.padding]="buttonPadding + 'em'"
-            >
-            {{keyMap}}<span class="display-symbol" [innerHTML]="keyCodeToSymbol(keyCode)"></span><span *ngIf="keystrokeTranslate" class="hotkey" [innerHTML]="keyCodeToKey(keyCode)"></span>
-        </button>
-
-        <!--<button (click)="addSymbol('+')" ><span class="display-symbol">+</span><span *ngIf="keystrokeTranslate" class="hotkey">p</span></button> 
-        <button (click)="addSymbol('-')" ><span class="display-symbol">-</span><span *ngIf="keystrokeTranslate" class="hotkey">-</span></button> 
-        <button (click)="addSymbol('xx')" ><span class="display-symbol">x</span><span *ngIf="keystrokeTranslate" class="hotkey">t</span></button> 
-        <button (click)="addSymbol('/')" ><span class="display-symbol">/</span><span *ngIf="keystrokeTranslate" class="hotkey">/</span></button> 
-        <button (click)="addSymbol('=')" ><span class="display-symbol">=</span><span *ngIf="keystrokeTranslate" class="hotkey">=</span></button> 
-        <button (click)="addSymbol('(')" ><span class="display-symbol">(</span><span *ngIf="keystrokeTranslate" class="hotkey">o</span></button> 
-        <button (click)="addSymbol(')')" ><span class="display-symbol">)</span><span *ngIf="keystrokeTranslate" class="hotkey">c</span></button> 
-        <button (click)="addSymbol('#')" ><span class="display-symbol">space</span><span *ngIf="keystrokeTranslate" class="hotkey">space</span></button>
-        <button (click)="addSymbol('^')" ><span class="display-symbol">y &#x02e3;</span><span *ngIf="keystrokeTranslate" class="hotkey">u</span></button> 
-        <button (click)="addSymbol('sqrt')" ><span class="display-symbol">&#x221a;</span><span *ngIf="keystrokeTranslate" class="hotkey">r</span></button> 
-        <button (click)="addSymbol('x')" ><span class="display-symbol">𝑥</span><span *ngIf="keystrokeTranslate" class="hotkey">x</span></button> 
-        <button (click)="addSymbol('y')" ><span class="display-symbol">𝑦</span><span *ngIf="keystrokeTranslate" class="hotkey">y</span></button> -->
-        <button (click)="keystrokeTranslate = ! keystrokeTranslate">Translate Keys</button> 
+        <jk-operator-button [operator]="'addition'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'subtraction'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'multiplication'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'division'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'equals'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'openBracket'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'closeBracket'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'power'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'root'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'space'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'x'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'y'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <button (click)="toggleHotkeys()">Translate Keys</button> 
         
         <div id="number-controls">
-            <button (click)="addSymbol('.')"
-                [style.padding]="buttonPadding + 'em'"
-                >.</button>
-            <button (click)="addSymbol('0')"
-                [style.padding]="buttonPadding + 'em'"
-                >0</button> 
-            <button (click)="addSymbol('1')"
-                [style.padding]="buttonPadding + 'em'"
-             >1</button> 
-            <button (click)="addSymbol('2')"
-                [style.padding]="buttonPadding + 'em'"
-             >2</button> 
-            <button (click)="addSymbol('3')"
-                [style.padding]="buttonPadding + 'em'"
-             >3</button> 
-            <button (click)="addSymbol('4')"
-                [style.padding]="buttonPadding + 'em'"
-             >4</button> 
-            <button (click)="addSymbol('5')"
-                [style.padding]="buttonPadding + 'em'"
-             >5</button> 
-            <button (click)="addSymbol('6')"
-                [style.padding]="buttonPadding + 'em'"
-             >6</button> 
-            <button (click)="addSymbol('7')"
-                [style.padding]="buttonPadding + 'em'"
-             >7</button> 
-            <button (click)="addSymbol('8')"
-                [style.padding]="buttonPadding + 'em'"
-             >8</button> 
-            <button (click)="addSymbol('9')"
-                [style.padding]="buttonPadding + 'em'"
-             >9</button> 
-            <button (click)="enter()"
-                [style.padding]="buttonPadding + 'em'"
-             >Enter</button> 
+            <jk-operator-button [operator]="'point'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'0'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'1'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'2'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'3'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'4'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'5'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'6'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'7'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'8'" (notify)="addSymbol($event)"></jk-operator-button>
+            <jk-operator-button [operator]="'9'" (notify)="addSymbol($event)"></jk-operator-button>
+
+            <jk-control-button [control]="'enter'"
+                    [disabled]="lineIsEmpty()"
+                    (notify)="enter()"></jk-control-button>
+
+
             <br/>
             <button (click)="buttonPadding = buttonPadding - 0.1; prettyHeight = prettyHeight - 1;"
                 [style.padding]="buttonPadding + 'em'"
@@ -114,7 +121,7 @@
              >bigger</button>
         <div>
     </div>
-    <canvas myWriting id="hand-canvas"></canvas>
+    <!--<canvas myWriting id="hand-canvas"></canvas>
     <img id="hand-img"/>
 
     <div id="hand-controls">
@@ -129,5 +136,5 @@
                 `{{token.term}}`
             </div>
         </div>
-    </div>
+        </div>-->
 </div>
