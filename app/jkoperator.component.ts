@@ -128,7 +128,7 @@ export class JkOperatorButtonComponent {
             'mathjaxString': ')',
             'allowHotkey': true,
             'unhotkey': ')',
-            'hotkeys': [ 'c' ]
+            'hotkeys': [ 'l' ]
         },
         'power' : {
             'screenDisplay': 'y&#x02e3',

@@ -185,6 +185,8 @@ export class PaperComponent {
         st = st.replace(/\/([^#=]+)/g, "/($1)");
         st = st.replace(/([^=#]+)\//g, "($1)/");
         
+        st = st.replace(/ccolor/g, "c#color");
+        st = st.replace(/ccancel/g, "c#cancel");
         // make things like cancel{12}3 become (cancel{12}3) as it formats better
         st = st.replace(/(cancel{\d+}\d+)\//g, "($1)/");
 
