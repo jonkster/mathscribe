@@ -75,6 +75,7 @@
     background: url("./resources/background.jpg");
     border: 1px solid black;
     overflow: auto;
+    position: relative;
 }
 
 
@@ -94,6 +95,7 @@
 }
 
 .line-arithmetic {
+    position: absolute;
     padding: 0.5em 0;
     background: url("./resources/background.jpg");
     width: 25%;

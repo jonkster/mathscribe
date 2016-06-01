@@ -2,11 +2,11 @@
         [ngGrid]="{'max_cols': 14, 'max_rows': 6, 'row_height': 100, 'draggable': false, 'resizeable': false, 'margins': [5, 5]}" >
 
     <div  class="pretty grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 2, 'sizey': 3}">
-        <div *ngFor="let markedString of markedStrings; let line = index"
+        <div *ngFor="let markedString of mathjaxInputStrings; let line = index"
           myMathJax
           class="line-arithmetic"
           [ngClass]="setLineClass(line)"
-          [(mathString)]="markedStrings[line]">
+          [(mathString)]="mathjaxInputStrings[line]">
         </div>
     </div>
 
@@ -47,48 +47,46 @@
          (notify)="enter()"></jk-control-button>
     </div>
     <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 6, 'sizex': 6, 'sizey': 1}">
-        <jk-control-button [control]="'clear'"
-         [disabled]="lineIsEmpty() && lineIndex == 0"
-         (notify)="clear()"></jk-control-button>
-     <jk-control-button [control]="'left'"
-         [disabled]="lineIsEmpty()"
-         (notify)="markMove(-1)"></jk-control-button>
-     <jk-control-button [control]="'right'"
-         [disabled]="lineIsEmpty()"
-         (notify)="markMove(1)"></jk-control-button>
-     <jk-control-button [control]="'deleteLeft'"
-         [disabled]="lineIsEmpty()"
-         (notify)="remove()"></jk-control-button>
-     <jk-control-button [control]="'deleteRight'"
-         [disabled]="lineIsEmpty()"
-         (notify)="removeNext()"></jk-control-button>
-     <jk-control-button [control]="'crossOut'"
-         [disabled]="lineIsEmpty()"
-         (notify)="crossout()"></jk-control-button>
-     <jk-control-button [control]="'deleteCrossed'"
-         [disabled]="lineIsEmpty()"
-         (notify)="removeCrossout()"></jk-control-button>
-     <jk-control-button [control]="'paste'"
-         [disabled]="chosen == ''"
-         (notify)="paste()"></jk-control-button>
-     <jk-control-button [control]="'undo'"
-         [disabled]="undoBuffer.length > 0"
-         (notify)="undo()"></jk-control-button>
-     <jk-control-button [control]="'up'"
-         [disabled]="lineIndex<=0"
-         (notify)="vertical(-1)"></jk-control-button>
-     <jk-control-button [control]="'down'"
-         [disabled]="lineIndex >= markedStrings.length-1"
-         (notify)="vertical(1)"></jk-control-button>
+        <jk-control-button [control]="'left'"
+             [disabled]="lineIsEmpty()"
+             (notify)="markMove(-1)"></jk-control-button>
+        <jk-control-button [control]="'right'"
+             [disabled]="lineIsEmpty()"
+             (notify)="markMove(1)"></jk-control-button>
+         <jk-control-button [control]="'up'"
+             [disabled]="lineIndex<=0"
+             (notify)="vertical(-1)"></jk-control-button>
+         <jk-control-button [control]="'down'"
+             [disabled]="lineIndex >= mathjaxInputStrings.length-1"
+             (notify)="vertical(1)"></jk-control-button>
+         <jk-control-button [control]="'home'"
+             [disabled]="lineIsEmpty()"
+             (notify)="cursorToStart()"></jk-control-button>
+         <jk-control-button [control]="'end'"
+             [disabled]="lineIsEmpty()"
+             (notify)="cursorToEnd()"></jk-control-button>
     </div>
-
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 7, 'sizex': 6, 'sizey': 1}">
+         <jk-control-button [control]="'deleteLeft'"
+             [disabled]="lineIsEmpty()"
+             (notify)="remove()"></jk-control-button>
+         <jk-control-button [control]="'deleteRight'"
+             [disabled]="lineIsEmpty()"
+             (notify)="removeNext()"></jk-control-button>
+        <jk-control-button [control]="'clear'"
+                 [disabled]="lineIsEmpty() && lineIndex == 0"
+                 (notify)="clear()"></jk-control-button>
+         <jk-control-button [control]="'crossOut'"
+             [disabled]="lineIsEmpty()"
+             (notify)="crossout()"></jk-control-button>
+         <jk-control-button [control]="'deleteCrossed'"
+             [disabled]="lineIsEmpty()"
+             (notify)="removeCrossout()"></jk-control-button>
+         <jk-control-button [control]="'paste'"
+             [disabled]="chosen == ''"
+             (notify)="paste()"></jk-control-button>
+         <jk-control-button [control]="'undo'"
+             [disabled]="undoBuffer.length > 0"
+             (notify)="undo()"></jk-control-button>
+    </div>
 </div>
-<!-- <div>
-    <br/>
-    <button (click)="buttonPadding = buttonPadding - 0.1; prettyHeight = prettyHeight - 1;"
-         [style.padding]="buttonPadding + 'em'"
-         >smaller</button>
-    <button (click)="buttonPadding = buttonPadding + 0.1; prettyHeight = prettyHeight + 1;"
-         [style.padding]="buttonPadding + 'em'"
-         >bigger</button>
-         </div>-->

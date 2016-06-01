@@ -85,6 +85,14 @@ export class JkControlButtonComponent {
             'screenDisplay': '&#x2192;',
             'hotkey': 'right arrow',
         },
+        'home' : {
+            'screenDisplay': '&#x21e4;',
+            'hotkey': 'home',
+        },
+        'end' : {
+            'screenDisplay': '&#x21e5;',
+            'hotkey': 'end',
+        },
         'deleteLeft' : {
             'screenDisplay': '&#x232b;',
             'hotkey': 'backspace',

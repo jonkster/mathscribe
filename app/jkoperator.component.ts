@@ -148,7 +148,7 @@ export class JkOperatorButtonComponent {
             'screenDisplay': '&lt;space&gt;',
             'mathjaxString': '#',
             'unhotkey': ' ',
-            'hotkeys': [ ' ' ]
+            'hotkeys': [ ' ', '#' ]
         },
         'x' : {
             'screenDisplay': '𝑥',
