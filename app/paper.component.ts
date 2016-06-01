@@ -315,7 +315,7 @@ export class PaperComponent {
         {
             if (node.className.match(/mo|mn|msup|mi/)) {
                 nodeList.push(node);
-            } else if (node.innerHTML.match(/^(\(|\))/) {
+            } else if (node.innerHTML.match(/^(\(|\))/)) {
                 nodeList.push(node);
             }
         }
