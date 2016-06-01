@@ -1,4 +1,4 @@
-import { Component, OnInit, SimpleChange, ViewChild, ViewChildren, Input } from '@angular/core';
+import { Component, OnInit, SimpleChange, ViewChild, ViewChildren, Input, ElementRef } from '@angular/core';
 import { MathJaxDirective } from './mathjax.directive';
 import {NgGrid, NgGridItem} from 'angular2-grid';
 import { JkOperatorButtonComponent } from './jkoperator.component';
@@ -145,27 +145,29 @@ export class PaperComponent {
         var prevCancel = false;
         var markerAdded = false;
         for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++) {
-            if (this.markerVisibility[this.lineIndex] && i == this.markStartPos) {
-                markerAdded = true;
-                st += this.mathjaxMarker; 
-            }
-
             var item = this.rawStructure[this.lineIndex][i];
+
             if (item.token != 'cancel') {
                 if (prevCancel) {
                     st += '}';
                     prevCancel = false;
                 }
-                st += item.term;
-            } else {
+            }
+
+            if (this.markerVisibility[this.lineIndex] && i == this.markStartPos) {
+                st += this.mathjaxMarker; 
+                markerAdded = true;
+            }
+
+            if (item.token == 'cancel') {
                 if (! prevCancel) {
                     st += 'cancel{';
                     prevCancel = true;
                     crossed = [];
                 }
-                st += item.term;
                 crossed.push(item.term);
             }
+            st += item.term;
 
         }
         if (! markerAdded && this.markerVisibility[this.lineIndex]) {
@@ -177,6 +179,14 @@ export class PaperComponent {
 
         /*st = st.replace(/#+([\/\+\*-\^])/, "$1");
         st = st.replace(/([\/\+\*-\^])#+/, "$1");*/
+
+        // make terms greedy near '/' - except when space or = detected as this
+        // allows neater entry of fractions
+        st = st.replace(/\/([^#=]+)/g, "/($1)");
+        st = st.replace(/([^=#]+)\//g, "($1)/");
+        
+        // make things like cancel{12}3 become (cancel{12}3) as it formats better
+        st = st.replace(/(cancel{\d+}\d+)\//g, "($1)/");
 
         // merge consecutive crossouts into one crossout
         if (crossed.length > 0) {
@@ -199,24 +209,26 @@ export class PaperComponent {
             var prevCancel = false;
             for (var i = 0; i < this.rawStructure[this.lineIndex].length; i++) {
                 var item = this.rawStructure[this.lineIndex][i];
-                if (i == this.markStartPos) {
-                    st += sym;
-                    symbolAdded = true;
-                }
 
                 if (item.token != 'cancel') {
                     if (prevCancel) {
                         st += '}';
                         prevCancel = false;
                     }
-                    st += item.term;
-                } else {
+                }
+
+                if (i == this.markStartPos) {
+                    st += sym;
+                    symbolAdded = true;
+                }
+
+                if (item.token == 'cancel') {
                     if (! prevCancel) {
                         st += 'cancel{';
                         prevCancel = true;
                     }
-                    st += item.term;
                 }
+                st += item.term;
             }
             if (! symbolAdded) {
                 st = st.replace(/\s$/g, '');
@@ -295,6 +307,22 @@ export class PaperComponent {
         this.cursorToEnd();
     }
 
+    getTokenNodes(node, nodeList) {
+        // get all mathjax token nodes in the given node root
+        if (node.className != undefined)
+        {
+            if (node.className.match(/mo|mn|msup|mi/)) {
+                nodeList.push(node);
+            } else if (node.innerHTML.match(/^(\(|\))/) {
+                nodeList.push(node);
+            }
+        }
+        var children = node.childNodes;
+        for (var i = 0; i < children.length; i++) {
+            this.getTokenNodes(children[i], nodeList);
+        }
+    }
+
     keyInput(ev) {
         var key = this.keyCodeTrans[ev.which];
         if (key.lower.match(/shift|alt|ctrl/)) {
@@ -304,10 +332,10 @@ export class PaperComponent {
         if (ev.shiftKey && key.upper != '') {
             ch = key.upper;
         }
-        console.log(ev, ch);
         var buttons = this.operatorButtons.toArray();
         for (var i = 0; i < buttons.length; i++) {
             if (buttons[i].hotkey(ch)) {
+                ev.preventDefault();
                 ev.stopPropagation();
                 return;
             }
@@ -315,13 +343,47 @@ export class PaperComponent {
         var controls = this.controlButtons.toArray();
         for (var i = 0; i < controls.length; i++) {
             if (controls[i].hotkey(ch)) {
+                ev.preventDefault();
                 ev.stopPropagation();
                 return;
             }
         }
         if (key.upper != '') {
+            ev.preventDefault();
+            ev.stopPropagation();
             this.addSymbol(ch);
         }
+    }
+
+    lineClicked(line, ev) {
+        if (this.lineIndex != line) {
+            this.setMarkerVisibility(false);
+            this.lineIndex = line;
+            this.cursorToEnd();
+        }
+
+        var p = ev.path;
+        var math = undefined;
+        for (var i = 0; i < p.length; i++) {
+            if (p[i].className == 'math') {
+                    math = p[i];
+                    break;
+            }
+        }
+
+        var pos = 0;
+        if (math != undefined) {
+            var tn = [];
+            this.getTokenNodes(math, tn);
+            for (var i = 0; i < tn.length; i++) {
+                if (tn[i].id == p[0].id) {
+                    pos = i;
+                }
+            }
+        }
+        this.markStartPos = pos;
+        this.reparse();
+        this.setMarkerVisibility(true);
     }
 
     lineIsEmpty() {
@@ -477,6 +539,7 @@ export class PaperComponent {
         var st = this.unparseStructure();
         this.tokenise(st);
     }
+
     removeCrossout() {
         var st = this.unparseStructure();
         st = st.replace(/cancel{.*?}/g, '');

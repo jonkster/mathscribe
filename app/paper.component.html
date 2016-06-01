@@ -6,7 +6,9 @@
           myMathJax
           class="line-arithmetic"
           [ngClass]="setLineClass(line)"
-          [(mathString)]="mathjaxInputStrings[line]">
+          [(mathString)]="mathjaxInputStrings[line]"
+          (click)="lineClicked(line, $event)"
+          >
         </div>
     </div>
 
@@ -90,3 +92,4 @@
              (notify)="undo()"></jk-control-button>
     </div>
 </div>
+<input [(ngModel)]="mathjaxInputStrings[lineIndex]"/>

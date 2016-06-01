@@ -65,7 +65,6 @@ export class JkControlButtonComponent {
     }
 
     hotkey(ch) {
-        console.log('compare', ch, this.myControl.hotkey);
         if (ch == this.myControl.hotkey) {
             this.actOnOperator(ch);
             return true;
