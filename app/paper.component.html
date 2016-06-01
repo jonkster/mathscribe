@@ -48,7 +48,7 @@
     </div>
     <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 6, 'sizex': 6, 'sizey': 1}">
         <jk-control-button [control]="'clear'"
-         [disabled]="lineIsEmpty()"
+         [disabled]="lineIsEmpty() && lineIndex == 0"
          (notify)="clear()"></jk-control-button>
      <jk-control-button [control]="'left'"
          [disabled]="lineIsEmpty()"
