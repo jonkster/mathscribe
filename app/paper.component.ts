@@ -1,5 +1,6 @@
 import { Component, OnInit, SimpleChange, ViewChild, ViewChildren, Input } from '@angular/core';
 import { MathJaxDirective } from './mathjax.directive';
+import {NgGrid, NgGridItem} from 'angular2-grid';
 import { MyWritingDirective } from './writing.directive';
 import { JkOperatorButtonComponent } from './jkoperator.component';
 import { JkControlButtonComponent } from './jkcontrol.component';
@@ -9,8 +10,8 @@ declare var MathJax: any;
 @Component({
   selector: 'my-paper',
   templateUrl: 'app/paper.component.html',
-  styleUrls: ['app/paper.component.css'],
-  directives: [  MathJaxDirective, MyWritingDirective, JkOperatorButtonComponent , JkControlButtonComponent ],
+  styleUrls: ['app/paper.component.css', 'node_modules/angular2-grid/dist/NgGrid.css'],
+  directives: [  MathJaxDirective, MyWritingDirective, JkOperatorButtonComponent , JkControlButtonComponent, NgGrid, NgGridItem ],
   styles: [`
   `]
 })

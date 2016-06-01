@@ -1,140 +1,94 @@
-<div id="scribed" (window:keydown)="keyInput($event)" >
-    <div class="pretty"
-         [style.height]="prettyHeight + 'em'"
-        >
+<div id="scribed" (window:keydown)="keyInput($event)" class="grid"
+        [ngGrid]="{'max_cols': 14, 'max_rows': 6, 'row_height': 100, 'fix_to_grid': true, 'draggable': true, 'resizeable': true, 'margins': [5, 5]}" >
+
+    <div  class="pretty grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 4, 'sizey': 4}">
         <div *ngFor="let markedString of markedStrings; let line = index"
-            myMathJax
-            class="line-arithmetic"
-            [ngClass]="setLineClass(line)"
-            [(mathString)]="markedStrings[line]">
+          myMathJax
+          class="line-arithmetic"
+          [ngClass]="setLineClass(line)"
+          [(mathString)]="markedStrings[line]">
         </div>
     </div>
 
-    <div class="nav-buttons">
-        <jk-control-button [control]="'clear'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="clear()"></jk-control-button>
-        <jk-control-button [control]="'left'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="markMove(-1)"></jk-control-button>
-        <jk-control-button [control]="'right'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="markMove(1)"></jk-control-button>
-        <jk-control-button [control]="'deleteLeft'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="remove()"></jk-control-button>
-        <jk-control-button [control]="'deleteRight'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="removeNext()"></jk-control-button>
-        <jk-control-button [control]="'crossOut'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="crossout()"></jk-control-button>
-        <jk-control-button [control]="'deleteCrossed'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="removeCrossout()"></jk-control-button>
-        <jk-control-button [control]="'paste'"
-                    [disabled]="chosen == ''"
-                    (notify)="paste()"></jk-control-button>
-        <jk-control-button [control]="'undo'"
-                    [disabled]="undoBuffer.length > 0"
-                    (notify)="undo()"></jk-control-button>
-        <jk-control-button [control]="'up'"
-                    [disabled]="lineIndex<=0"
-                    (notify)="vertical(-1)"></jk-control-button>
-        <jk-control-button [control]="'down'"
-                    [disabled]="lineIndex >= markedStrings.length-1"
-                    (notify)="vertical(1)"></jk-control-button>
-
-        <!--<button (click)="markMove(-1)"
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="markedStrings[lineIndex] == ''">&#x2190;</button>
-        <button (click)="markMove(+1)" 
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="markedStrings[lineIndex] == ''">&#x2192;</button>
-        <button (click)="remove()" 
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="markedStrings[lineIndex] == ''">&#x232b;</button>
-        <button (click)="crossout()" 
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="markedStrings[lineIndex] == ''">&#x2192;&nbsp;<del>XXX</del></button> -->
-        <!--<button (click)="removeCrossout()" 
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="crossoutCount() == 0">&#x2326;&nbsp;<del>XXX</del></button> 
-        <button (click)="paste()"
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="chosen == ''">paste: {{chosen}}</button> 
-        <button (click)="undo()"
-            [style.padding]="buttonPadding + 'em'"
-            >Undo</button>
-        <button (click)="clear(handwriting)" 
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="markedStrings[lineIndex] == ''">Clear</button>
-        <button (click)="vertical(-1)"
-            [style.padding]="buttonPadding + 'em'"
-            [disabled]="lineIndex<=0">&#x2b06;</button> 
-        <button (click)="vertical(+1)" 
-            [style.padding]="buttonPadding + 'em'"
-         [disabled]="lineIndex >= markedStrings.length-1">&#x2b07;</button> -->
-
-    </div>
-</div>
-<div>
-    <div id="operator-controls">
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 5, 'row': 1, 'sizex': 3, 'sizey': 2}">
         <jk-operator-button [operator]="'addition'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'subtraction'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'multiplication'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'division'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
-        <jk-operator-button [operator]="'equals'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'openBracket'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'closeBracket'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'equals'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+    </div>
+
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 5, 'row': 3, 'sizex': 3, 'sizey': 2}">
         <jk-operator-button [operator]="'power'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'root'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'space'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'x'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'y'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <button (click)="toggleHotkeys()">Translate Keys</button> 
-        
-        <div id="number-controls">
-            <jk-operator-button [operator]="'point'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'0'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'1'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'2'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'3'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'4'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'5'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'6'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'7'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'8'" (notify)="addSymbol($event)"></jk-operator-button>
-            <jk-operator-button [operator]="'9'" (notify)="addSymbol($event)"></jk-operator-button>
-
-            <jk-control-button [control]="'enter'"
-                    [disabled]="lineIsEmpty()"
-                    (notify)="enter()"></jk-control-button>
-
-
-            <br/>
-            <button (click)="buttonPadding = buttonPadding - 0.1; prettyHeight = prettyHeight - 1;"
-                [style.padding]="buttonPadding + 'em'"
-                >smaller</button>
-            <button (click)="buttonPadding = buttonPadding + 0.1; prettyHeight = prettyHeight + 1;"
-                [style.padding]="buttonPadding + 'em'"
-             >bigger</button>
-        <div>
     </div>
-    <!--<canvas myWriting id="hand-canvas"></canvas>
-    <img id="hand-img"/>
 
-    <div id="hand-controls">
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 5, 'sizex': 6, 'sizey': 1}">
+        <jk-operator-button [operator]="'point'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'0'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'1'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'2'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'3'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'4'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'5'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'6'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'7'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'8'" (notify)="addSymbol($event)"></jk-operator-button>
+        <jk-operator-button [operator]="'9'" (notify)="addSymbol($event)"></jk-operator-button>
 
-        <input id="marked-input" [ngModel]="markedStrings[lineIndex]"  />
+        <jk-control-button [control]="'enter'"
+         [disabled]="lineIsEmpty()"
+         (notify)="enter()"></jk-control-button>
+    </div>
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 6, 'sizex': 6, 'sizey': 1}">
+        <jk-control-button [control]="'clear'"
+         [disabled]="lineIsEmpty()"
+         (notify)="clear()"></jk-control-button>
+     <jk-control-button [control]="'left'"
+         [disabled]="lineIsEmpty()"
+         (notify)="markMove(-1)"></jk-control-button>
+     <jk-control-button [control]="'right'"
+         [disabled]="lineIsEmpty()"
+         (notify)="markMove(1)"></jk-control-button>
+     <jk-control-button [control]="'deleteLeft'"
+         [disabled]="lineIsEmpty()"
+         (notify)="remove()"></jk-control-button>
+     <jk-control-button [control]="'deleteRight'"
+         [disabled]="lineIsEmpty()"
+         (notify)="removeNext()"></jk-control-button>
+     <jk-control-button [control]="'crossOut'"
+         [disabled]="lineIsEmpty()"
+         (notify)="crossout()"></jk-control-button>
+     <jk-control-button [control]="'deleteCrossed'"
+         [disabled]="lineIsEmpty()"
+         (notify)="removeCrossout()"></jk-control-button>
+     <jk-control-button [control]="'paste'"
+         [disabled]="chosen == ''"
+         (notify)="paste()"></jk-control-button>
+     <jk-control-button [control]="'undo'"
+         [disabled]="undoBuffer.length > 0"
+         (notify)="undo()"></jk-control-button>
+     <jk-control-button [control]="'up'"
+         [disabled]="lineIndex<=0"
+         (notify)="vertical(-1)"></jk-control-button>
+     <jk-control-button [control]="'down'"
+         [disabled]="lineIndex >= markedStrings.length-1"
+         (notify)="vertical(1)"></jk-control-button>
+    </div>
 
-        <div id="tokens" round-scroller>
-            <div *ngFor="let token of tokens ;let i = index"
-                    class="carousel"
-                    [attr.id]="'term-' + i"
-                    [ngClass]="{'term-selected': i == carouselPick}">
-                `{{token.term}}`
-            </div>
-        </div>
-        </div>-->
 </div>
+<!-- <div>
+    <br/>
+    <button (click)="buttonPadding = buttonPadding - 0.1; prettyHeight = prettyHeight - 1;"
+         [style.padding]="buttonPadding + 'em'"
+         >smaller</button>
+    <button (click)="buttonPadding = buttonPadding + 0.1; prettyHeight = prettyHeight + 1;"
+         [style.padding]="buttonPadding + 'em'"
+         >bigger</button>
+         </div>-->

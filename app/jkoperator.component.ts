@@ -15,10 +15,11 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   `,
   styles: [`
     .jk-operator-button {
-        margin: 1.2em;
-        font-size: 1.2em;
-        padding: 1.5em;
+        margin: 0.5em;
+        font-size: 1.5em;
+        padding: 1em;
         border: 3px solid blue;
+        float: left;
     }
     .jk-display-symbol {
         font-weight: 900;
