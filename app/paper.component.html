@@ -1,7 +1,7 @@
 <div id="scribed" (window:keydown)="keyInput($event)" class="grid"
-        [ngGrid]="{'max_cols': 14, 'max_rows': 6, 'row_height': 100, 'fix_to_grid': true, 'draggable': true, 'resizeable': true, 'margins': [5, 5]}" >
+        [ngGrid]="{'max_cols': 14, 'max_rows': 6, 'row_height': 100, 'draggable': false, 'resizeable': false, 'margins': [5, 5]}" >
 
-    <div  class="pretty grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 4, 'sizey': 4}">
+    <div  class="pretty grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 2, 'sizey': 3}">
         <div *ngFor="let markedString of markedStrings; let line = index"
           myMathJax
           class="line-arithmetic"
@@ -10,7 +10,7 @@
         </div>
     </div>
 
-    <div class="opButtons grid-item" [ngGridItem]="{'col': 5, 'row': 1, 'sizex': 3, 'sizey': 2}">
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 1, 'sizex': 3, 'sizey': 1}">
         <jk-operator-button [operator]="'addition'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'subtraction'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'multiplication'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
@@ -20,7 +20,7 @@
         <jk-operator-button [operator]="'equals'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
     </div>
 
-    <div class="opButtons grid-item" [ngGridItem]="{'col': 5, 'row': 3, 'sizex': 3, 'sizey': 2}">
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 3, 'sizex': 3, 'sizey': 1}">
         <jk-operator-button [operator]="'power'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'root'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'space'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>

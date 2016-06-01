@@ -17,7 +17,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
     .jk-operator-button {
         margin: 0.5em;
         font-size: 1.5em;
-        padding: 1em;
+        padding: 0.2em 1em;
         border: 3px solid blue;
         float: left;
     }
