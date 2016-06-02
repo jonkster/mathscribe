@@ -1,15 +1,14 @@
-<div id="scribed" (window:keydown)="keyInput($event)" class="grid"
-        [ngGrid]="{'max_cols': 14, 'max_rows': 6, 'row_height': 100, 'draggable': false, 'resizeable': false, 'margins': [5, 5]}" >
+<div id="scribed" (window:keydown)="keyInput($event)"
+     class="grid" [ngGrid]="{'max_cols': 8, 'max_rows': 10, 'row_height': 100, 'draggable': false, 'resizeable': false, 'margins': [5, 5]}" >
 
         <div  class="pretty grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 2, 'sizey': 3}" [ngClass]="{big: big}">
-        <div *ngFor="let markedString of mathjaxInputStrings; let line = index"
-          myMathJax
-          class="line-arithmetic"
-          [ngClass]="setLineClass(line)"
-          [(mathString)]="mathjaxInputStrings[line]"
-          (click)="lineClicked(line, $event)"
-          >
-        </div>
+            <div *ngFor="let markedString of mathjaxInputStrings; let line = index"
+              myMathJax
+              class="line-arithmetic"
+              [ngClass]="setLineClass(line)"
+              [(mathString)]="mathjaxInputStrings[line]"
+              (click)="lineClicked(line, $event)" >
+            </div>
     </div>
 
     <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 1, 'sizex': 3, 'sizey': 1}">
@@ -23,7 +22,7 @@
         <jk-operator-button [operator]="'equals'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
     </div>
 
-    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 3, 'sizex': 3, 'sizey': 1}">
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 2, 'sizex': 3, 'sizey': 1}">
         <jk-operator-button [operator]="'gt'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'lt'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'power'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
@@ -31,7 +30,7 @@
         <jk-operator-button [operator]="'space'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-control-button [control]="'enter'" [disabled]="lineIsEmpty()" (notify)="enter()"></jk-control-button>
     </div>
-    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 4, 'sizex': 3, 'sizey': 1}">
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 3, 'sizex': 3, 'sizey': 1}">
         <jk-operator-button [operator]="'theta'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'degree'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'flip'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
@@ -41,7 +40,8 @@
          <jk-control-button [control]="'toggle big'" (notify)="toggleBig()"></jk-control-button>
     </div>
 
-    <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 5, 'sizex': 6, 'sizey': 1}">
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 4, 'sizex': 6, 'sizey': 3}">
+        <div class="keep-line">
         <jk-operator-button [operator]="'point'" (notify)="addSymbol($event)"></jk-operator-button>
         <jk-operator-button [operator]="'0'" (notify)="addSymbol($event)"></jk-operator-button>
         <jk-operator-button [operator]="'1'" (notify)="addSymbol($event)"></jk-operator-button>
@@ -53,8 +53,7 @@
         <jk-operator-button [operator]="'7'" (notify)="addSymbol($event)"></jk-operator-button>
         <jk-operator-button [operator]="'8'" (notify)="addSymbol($event)"></jk-operator-button>
         <jk-operator-button [operator]="'9'" (notify)="addSymbol($event)"></jk-operator-button>
-    </div>
-    <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 5, 'sizex': 6, 'sizey': 1.5}">
+        </div>
         <div class="keep-line">
         <jk-operator-button [operator]="'x'" (notify)="addSymbol($event)"></jk-operator-button>
         <jk-operator-button [operator]="'y'" (notify)="addSymbol($event)"></jk-operator-button>
@@ -87,9 +86,6 @@
         <jk-operator-button [operator]="'y'" (notify)="addSymbol($event)"></jk-operator-button>
         <jk-operator-button [operator]="'z'" (notify)="addSymbol($event)"></jk-operator-button>
         </div>
-    </div>
-
-    <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 6, 'sizex': 6, 'sizey': 0.5}">
         <div class="keep-line">
         <jk-control-button [control]="'left'" [disabled]="lineIsEmpty()" (notify)="markMove(-1)"></jk-control-button>
         <jk-control-button [control]="'right'" [disabled]="lineIsEmpty()" (notify)="markMove(1)"></jk-control-button>
