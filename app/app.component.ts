@@ -12,6 +12,7 @@ import { ConfigurationComponent } from './configuration.component';
     <h2>{{title}} v{{version}} | <a [routerLink]="['Configuration']">Configuration</a> | <a [routerLink]="['Paper']">Paper</a></h2>
     <router-outlet></router-outlet>
     `,
+    styles: [`h2 {font-size:smaller;} `];
     directives: [  ROUTER_DIRECTIVES ],
     providers: [ ROUTER_PROVIDERS ]
 })

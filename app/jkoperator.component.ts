@@ -109,6 +109,13 @@ export class JkOperatorButtonComponent {
             'unhotkey': '/',
             'hotkeys': [ 'd' ]
         },
+        'division2' : {
+            'screenDisplay': '&#xf7;',
+            'mathjaxString': '-:',
+            'allowHotkey': true,
+            'unhotkey': '',
+            'hotkeys': [ ':' ]
+        },
         'equals' : {
             'screenDisplay': '=',
             'mathjaxString': '=',
@@ -163,6 +170,41 @@ export class JkOperatorButtonComponent {
             'allowHotkey': true,
             'unhotkey': 'y',
             'hotkeys': [ 'y' ]
+        },
+        'flip' : {
+            'screenDisplay': '&#x2191;&#x2193;',
+            'mathjaxString': '#_darr^uarr',
+            'allowHotkey': true,
+            'unhotkey': '',
+            'hotkeys': [ 'f' ]
+        },
+        'crossed' : {
+            'screenDisplay': '&#x292d;',
+            'mathjaxString': '#~',
+            'allowHotkey': true,
+            'unhotkey': '~',
+            'hotkeys': [ '' ]
+        },
+        'degree' : {
+            'screenDisplay': '&#xb0',
+            'mathjaxString': '^@',
+            'allowHotkey': true,
+            'unhotkey': '',
+            'hotkeys': [ '@' ]
+        },
+        'gt' : {
+            'screenDisplay': '&gt;',
+            'mathjaxString': '>',
+            'allowHotkey': true,
+            'unhotkey': '>',
+            'hotkeys': [ '' ]
+        },
+        'lt' : {
+            'screenDisplay': '&lt;',
+            'mathjaxString': '<',
+            'allowHotkey': true,
+            'unhotkey': '<',
+            'hotkeys': [ '' ]
         },
         'point' : {
             'screenDisplay': '.',

@@ -17,6 +17,7 @@
         <jk-operator-button [operator]="'subtraction'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'multiplication'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'division'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'division2'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'openBracket'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'closeBracket'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'equals'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
@@ -28,7 +29,15 @@
         <jk-operator-button [operator]="'space'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'x'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'y'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
-        <button (click)="toggleHotkeys()">Translate Keys</button> 
+        <jk-operator-button [operator]="'gt'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'lt'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+    </div>
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 4, 'sizex': 3, 'sizey': 1}">
+        <jk-operator-button [operator]="'degree'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'flip'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <jk-operator-button [operator]="'crossed'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
+        <!--<button (click)="toggleHotkeys()">Translate Keys</button>  -->
+         <jk-control-button [control]="'toggleHotkeys'" (notify)="toggleHotkeys()"></jk-control-button>
     </div>
 
     <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 5, 'sizex': 6, 'sizey': 1}">
@@ -48,6 +57,7 @@
          [disabled]="lineIsEmpty()"
          (notify)="enter()"></jk-control-button>
     </div>
+
     <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 6, 'sizex': 6, 'sizey': 1}">
         <jk-control-button [control]="'left'"
              [disabled]="lineIsEmpty()"
@@ -55,19 +65,29 @@
         <jk-control-button [control]="'right'"
              [disabled]="lineIsEmpty()"
              (notify)="markMove(1)"></jk-control-button>
-         <jk-control-button [control]="'up'"
-             [disabled]="lineIndex<=0"
-             (notify)="vertical(-1)"></jk-control-button>
-         <jk-control-button [control]="'down'"
-             [disabled]="lineIndex >= mathjaxInputStrings.length-1"
-             (notify)="vertical(1)"></jk-control-button>
+         <jk-control-button [control]="'skipBack'"
+             [disabled]="lineIsEmpty()"
+             (notify)="markMove(-3)"></jk-control-button>
+         <jk-control-button [control]="'skipForward'"
+             [disabled]="lineIsEmpty()"
+             (notify)="markMove(3)"></jk-control-button>
          <jk-control-button [control]="'home'"
              [disabled]="lineIsEmpty()"
              (notify)="cursorToStart()"></jk-control-button>
          <jk-control-button [control]="'end'"
              [disabled]="lineIsEmpty()"
              (notify)="cursorToEnd()"></jk-control-button>
+        <jk-control-button [control]="'clear'"
+                 [disabled]="lineIsEmpty() && lineIndex == 0"
+                 (notify)="clear()"></jk-control-button>
+         <jk-control-button [control]="'upline'"
+             [disabled]="lineIndex<=0"
+             (notify)="vertical(-1)"></jk-control-button>
+         <jk-control-button [control]="'downline'"
+             [disabled]="lineIndex >= mathjaxInputStrings.length-1"
+             (notify)="vertical(1)"></jk-control-button>
     </div>
+
     <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 7, 'sizex': 6, 'sizey': 1}">
          <jk-control-button [control]="'deleteLeft'"
              [disabled]="lineIsEmpty()"
@@ -75,9 +95,6 @@
          <jk-control-button [control]="'deleteRight'"
              [disabled]="lineIsEmpty()"
              (notify)="removeNext()"></jk-control-button>
-        <jk-control-button [control]="'clear'"
-                 [disabled]="lineIsEmpty() && lineIndex == 0"
-                 (notify)="clear()"></jk-control-button>
          <jk-control-button [control]="'crossOut'"
              [disabled]="lineIsEmpty()"
              (notify)="crossout()"></jk-control-button>
@@ -88,7 +105,7 @@
              [disabled]="chosen == ''"
              (notify)="paste()"></jk-control-button>
          <jk-control-button [control]="'undo'"
-             [disabled]="undoBuffer.length > 0"
+             [disabled]="undoBuffer.length == 0"
              (notify)="undo()"></jk-control-button>
     </div>
 </div>

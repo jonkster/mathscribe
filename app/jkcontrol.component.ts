@@ -75,6 +75,10 @@ export class JkControlButtonComponent {
     controls = {
         'clear' : {
             'screenDisplay': 'clear',
+            'hotkey': 'insert',
+        },
+        'toggleHotkeys' : {
+            'screenDisplay': 'hotkeys',
         },
         'left' : {
             'screenDisplay': '&#x2190;',
@@ -114,13 +118,21 @@ export class JkControlButtonComponent {
         'undo' : {
             'screenDisplay': 'undo',
         },
-        'up' : {
-            'screenDisplay': '&#x2b06;',
+        'skipBack' : {
+            'screenDisplay': '&#x1f854;',
             'hotkey': 'up arrow',
         },
-        'down' : {
-            'screenDisplay': '&#x2b07;',
+        'skipForward' : {
+            'screenDisplay': '&#x1f856;',
             'hotkey': 'down arrow',
+        },
+        'upline' : {
+            'screenDisplay': '&#x2b06;',
+            'hotkey': 'page up',
+        },
+        'downline' : {
+            'screenDisplay': '&#x2b07;',
+            'hotkey': 'page down',
         },
         'enter' : {
             'screenDisplay': '&lt;enter&gt;',

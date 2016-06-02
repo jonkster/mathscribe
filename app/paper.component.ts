@@ -30,7 +30,6 @@ export class PaperComponent {
 
     keystrokeTranslate = true;
     markStartPos = 0;
-    markEndPos = 0;
     mathjaxInputStrings = [];
     lineIndex = 0;
     chosen = '';
@@ -182,9 +181,10 @@ export class PaperComponent {
 
         // make terms greedy near '/' - except when space or = detected as this
         // allows neater entry of fractions
-        st = st.replace(/\/([^#=]+)/g, "/($1)");
-        st = st.replace(/([^=#]+)\//g, "($1)/");
+        st = st.replace(/\/([^#=\)]+)/g, "/($1)");
+        st = st.replace(/([^\(=#]+)\//g, "($1)/");
         
+        // if a 'c' is entered it may conflict with our marks by being read as a 'cc'
         st = st.replace(/ccolor/g, "c#color");
         st = st.replace(/ccancel/g, "c#cancel");
         // make things like cancel{12}3 become (cancel{12}3) as it formats better
@@ -300,13 +300,15 @@ export class PaperComponent {
     enter() {
         this.setMarkerVisibility(false);
         var st = this.unparseStructure();
+        if (this.lineIsEmpty()) {
+            return;
+        }
+        this.chosen = st;
         this.lineIndex += 1;
         if (this.lineIndex >= this.rawStructure.length) {
             this.mathjaxInputStrings.push('');
             this.rawStructure.push([]);
         }
-        this.tokenise(st);
-        this.cursorToEnd();
     }
 
     getTokenNodes(node, nodeList) {
@@ -396,6 +398,7 @@ export class PaperComponent {
 
     markMove(amount) {
         this.saveUndo();
+
         this.markStartPos += amount;
         
         if (this.markStartPos > this.rawStructure[this.lineIndex].length)
@@ -406,7 +409,6 @@ export class PaperComponent {
         {
             this.markStartPos = 0;
         }
-        this.markEndPos = this.markStartPos;
 
         this.addCursorToString();
         return;
@@ -419,6 +421,7 @@ export class PaperComponent {
     ngOnInit() {
             // define extra chars here??
             var am = MathJax.Hub.inputJax['math/asciimath'].AM;
+            am.define("~","\u292a");
             am.define("!!",this.caretSymbol);
             am.define("#","\u2007");
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,"myMathJax"]);
@@ -445,6 +448,18 @@ export class PaperComponent {
 
                 if (ch == ' ') {
                     state = 'whitespace';
+                } else if (lookAhead.match(/^-:/)) {
+                    state = 'operator';
+                    i += 1;
+                } else if (lookAhead.match(/^#_darr\^uarr/)) {
+                    state = 'flip';
+                    i += 10;
+                } else if (lookAhead.match(/^#~/)) {
+                    state = 'operator';
+                    i += 1;
+                } else if (lookAhead.match(/^\^@/)) {
+                    state = 'degree';
+                    i += 1;
                 } else if (ch == '#') {
                     state = 'space';
                 } else if (ch == '=') {
@@ -522,7 +537,7 @@ export class PaperComponent {
         }
         if (this.lineIsEmpty())
         {
-            this.clear();
+            //this.clear();
         }
     }
 
@@ -552,7 +567,6 @@ export class PaperComponent {
         var undoRec = {
             'lineIndex' : this.lineIndex,
             'markStartPos' : this.markStartPos,
-            'markEndPos' : this.markEndPos,
             'rawStructure' : this.rawStructure.slice(0),
             'mathjaxInputStrings' : this.mathjaxInputStrings.slice(0)
         }
@@ -574,7 +588,7 @@ export class PaperComponent {
     }
 
 
-    stretchMarked(amount) {
+    /*stretchMarked(amount) {
         this.saveUndo();
         this.markEndPos += amount;
         if (this.markEndPos > this.rawStructure[this.lineIndex].length)
@@ -607,7 +621,7 @@ export class PaperComponent {
         }
         this.addCursorToString();
         return;
-    }
+    }*/
 
     toggleHotkeys() {
         this.keystrokeTranslate = ! this.keystrokeTranslate;
@@ -650,7 +664,6 @@ export class PaperComponent {
             this.lineIndex = state.lineIndex;
             this.rawStructure = state.rawStructure;
             this.markStartPos = state.markStartPos;
-            this.markEndPos = state.markEndPos;
             this.mathjaxInputStrings = state.mathjaxInputStrings;
             this.reparse();
         }
