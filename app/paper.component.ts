@@ -19,6 +19,7 @@ export class PaperComponent {
     @ViewChildren(JkControlButtonComponent) controlButtons;
 
     linesPerCol = 5;
+    big = false;
 
     caretSymbol = "\u2336";
     mathjaxMarker = 'color{red}{ !! }';
@@ -330,9 +331,12 @@ export class PaperComponent {
     }
 
     keyInput(ev) {
+        if (ev.ctrlKey || ev.altKey || ev.metaKey) {
+            return;
+        }
         var key = this.keyCodeTrans[ev.which];
         if (key.lower.match(/shift|alt|ctrl/)) {
-            return false;
+            return;
         }
         var ch = key.lower;
         if (ev.shiftKey && key.upper != '') {
@@ -585,8 +589,9 @@ export class PaperComponent {
     setLineClass(line) {
             var cl = 'column-' + Math.floor(line / this.linesPerCol);
             cl += ' row-' + (line % this.linesPerCol);
-            if (line == this.lineIndex)
+            if (line == this.lineIndex) {
                 cl += ' line-selected';
+            }
             return cl;
     }
 
@@ -631,6 +636,10 @@ export class PaperComponent {
         return;
     }*/
 
+    toggleBig() {
+        this.big = ! this.big;
+    }
+
     toggleHotkeys() {
         this.keystrokeTranslate = ! this.keystrokeTranslate;
         var buttons = this.operatorButtons.toArray();
@@ -667,6 +676,8 @@ export class PaperComponent {
 
 
     undo() {
+        var st = this.unparseStructure();
+        this.chosen = st;
         var state = this.undoBuffer.pop();
         if (state) {
             this.lineIndex = state.lineIndex;

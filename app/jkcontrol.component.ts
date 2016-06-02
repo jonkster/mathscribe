@@ -48,9 +48,18 @@ export class JkControlButtonComponent {
 
     ngAfterViewInit() {
     }
+
     ngOnInit() {
         if (this.allowHotkeys) {
             this.hotkeyEnabled = true;
+        }
+        if (this.controls[this.control] == undefined) {
+            // allow undefined controls to be used
+            var sd = this.control;
+            this.controls[this.control] = {
+                'screenDisplay': sd,
+                'hotkey': '',
+            };
         }
         this.myControl = this.controls[this.control];
     }

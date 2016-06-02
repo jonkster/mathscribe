@@ -1,7 +1,7 @@
 <div id="scribed" (window:keydown)="keyInput($event)" class="grid"
         [ngGrid]="{'max_cols': 14, 'max_rows': 6, 'row_height': 100, 'draggable': false, 'resizeable': false, 'margins': [5, 5]}" >
 
-    <div  class="pretty grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 2, 'sizey': 3}">
+        <div  class="pretty grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 2, 'sizey': 3}" [ngClass]="{big: big}">
         <div *ngFor="let markedString of mathjaxInputStrings; let line = index"
           myMathJax
           class="line-arithmetic"
@@ -38,6 +38,7 @@
         <jk-operator-button [operator]="'crossed'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'angle'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
          <jk-control-button [control]="'toggleHotkeys'" (notify)="toggleHotkeys()"></jk-control-button>
+         <jk-control-button [control]="'toggle big'" (notify)="toggleBig()"></jk-control-button>
     </div>
 
     <div class="opButtons grid-item" [ngGridItem]="{'col': 1, 'row': 5, 'sizex': 6, 'sizey': 1}">

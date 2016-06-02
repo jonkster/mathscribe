@@ -1,3 +1,27 @@
-<h1>CONFIG!</h1>
-<p>Not implemented yet... sorry</p>
+<h1>CONFIGURATION</h1>
+
+<div class="grid" [ngGrid]="{'max_cols': 14, 'max_rows': 6, 'row_height': 100, 'draggable': false, 'resizeable': false, 'margins': [5, 5]}" >
+    <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 1, 'sizex': 3, 'sizey': 1}">
+        <p>NB Functionality Is Not Implemented Yet... sorry</p>
+        <label for="leftright">Left or Right Handed</label>
+        <span><input type="radio" name="leftright" value="right" checked/>Right</span>
+        <span><input type="radio" name="leftright" value="left"/>Left</span>
+        <br/>
+        <label for="hotkeys">Hotkeys on by default</label>
+        <span><input type="radio" name="hotkeys" value="on" checked/>On</span>
+        <span><input type="radio" name="hotkeys" value="off"/>Off</span>
+        <br/>
+        <label for="symbols">Symbols and operators</label>
+        <span><input type="radio" name="symbols" value="basic" checked/>Basic</span>
+        <span><input type="radio" name="symbols" value="advanced"/>Advanced</span>
+        <span><input type="radio" name="symbols" value="full"/>Full</span>
+        <br/>
+        <label for="response">Button Sensitivity</label>
+        <span><input type="radio" name="response" value="standard" checked/>Basic</span>
+        <span><input type="radio" name="response" value="slower"/>Advanced</span>
+        <span><input type="radio" name="response" value="slowest"/>Full</span>
+        <br/>
+    </div>
+</div>
+
 

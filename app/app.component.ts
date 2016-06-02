@@ -10,7 +10,7 @@ import { ConfigurationComponent } from './configuration.component';
     selector: 'my-app',
     template: `
     <router-outlet></router-outlet>
-    <h2>{{title}} v{{version}} | <!--<a [routerLink]="['my-app']">Home</a>--> <a [routerLink]="['Configuration']">Configuration </a>&nbsp;&nbsp;<a [routerLink]="['Paper']">Paper</a></h2>
+    <h2>{{title}} v{{version}} | <a [routerLink]="['Configuration']">Configuration </a>&nbsp;&nbsp;<a [routerLink]="['Paper']">Paper</a></h2>
     `,
      styles: [`
          h2 {font-size:small;} 
@@ -21,6 +21,10 @@ import { ConfigurationComponent } from './configuration.component';
 })
 
 @RouteConfig([
+    {
+        path: "/",          
+        name: "root",      
+        redirectTo: [ "Paper"] },
     {
         path: '/config',
         name: 'Configuration',
