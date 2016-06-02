@@ -64,9 +64,9 @@ export class JkOperatorButtonComponent {
             }
             this.operators[this.operator] = {
                 'screenDisplay': sd,
-                'mathjaxString': sd,
+                'mathjaxString': this.operator,
                 'allowHotkey': false,
-                'unhotkey': sd,
+                'unhotkey': this.operator,
                 'hotkeys': [ '' ]
             };
         }
