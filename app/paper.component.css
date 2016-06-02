@@ -78,6 +78,17 @@ w-0 {
     position: relative;
 }
 
+.keep-line {
+    float: left;
+    clear: left;
+}
+
+.status {
+    font-size: 2em;
+    margin: 0 5em;
+    color: coral;
+}
+
 
 #scribed {
     border: 1px solid black;

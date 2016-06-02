@@ -18,7 +18,6 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
         margin: 0.5em;
         font-size: 1.5em;
         padding: 0.2em 1em;
-        border: 3px solid blue;
         float: left;
     }
     .jk-display-symbol {
@@ -45,13 +44,31 @@ export class JkOperatorButtonComponent {
 
     myOperator = undefined;
 
-
-
-    ngAfterViewInit() {
-    }
     ngOnInit() {
         if (this.allowHotkeys) {
             this.hotkeyEnabled = true;
+        }
+        if (this.operators[this.operator] == undefined) {
+            // allow undefined operators to be used
+            var sd = this.operator;
+            // turn lc alpha chars into unicode italic chars
+            if (this.operator.match(/^[a-z]$/)) {
+                if (sd == 'h') {
+                    // 'h' small italic is currently missing from unicode!
+                    sd = '<span style="font-family: STIXGeneral; font-style: italic;">' + sd + '</span>';
+                } else {
+                    var offset = sd.charCodeAt(0) - 97;
+                    var v = 0x1d44e + offset;
+                    sd = "&#" + v + ";";
+                }
+            }
+            this.operators[this.operator] = {
+                'screenDisplay': sd,
+                'mathjaxString': this.operator,
+                'allowHotkey': false,
+                'unhotkey': this.operator,
+                'hotkeys': [ '' ]
+            };
         }
         this.myOperator = this.operators[this.operator];
     }
@@ -93,7 +110,7 @@ export class JkOperatorButtonComponent {
             'mathjaxString': '-',
             'allowHotkey': true,
             'unhotkey': '-',
-            'hotkeys': [ 'm' ]
+            'hotkeys': [ '-' ]
         },
         'multiplication' : {
             'screenDisplay': 'X',
@@ -107,7 +124,7 @@ export class JkOperatorButtonComponent {
             'mathjaxString': '/',
             'allowHotkey': true,
             'unhotkey': '/',
-            'hotkeys': [ 'd' ]
+            'hotkeys': [ '/' ]
         },
         'division2' : {
             'screenDisplay': '&#xf7;',
@@ -121,7 +138,7 @@ export class JkOperatorButtonComponent {
             'mathjaxString': '=',
             'allowHotkey': true,
             'unhotkey': '=',
-            'hotkeys': [ 'e' ]
+            'hotkeys': [ '=' ]
         },
         'openBracket' : {
             'screenDisplay': '(',
@@ -157,20 +174,6 @@ export class JkOperatorButtonComponent {
             'unhotkey': ' ',
             'hotkeys': [ ' ', '#' ]
         },
-        'x' : {
-            'screenDisplay': '𝑥',
-            'mathjaxString': 'x',
-            'allowHotkey': true,
-            'unhotkey': 'x',
-            'hotkeys': [ 'x' ]
-        },
-        'y' : {
-            'screenDisplay': '𝑦',
-            'mathjaxString': 'y',
-            'allowHotkey': true,
-            'unhotkey': 'y',
-            'hotkeys': [ 'y' ]
-        },
         'flip' : {
             'screenDisplay': '&#x2191;&#x2193;',
             'mathjaxString': '#_darr^uarr',
@@ -185,6 +188,20 @@ export class JkOperatorButtonComponent {
             'unhotkey': '~',
             'hotkeys': [ '' ]
         },
+        'theta' : {
+            'screenDisplay': '&#x3b8;',
+            'mathjaxString': 'theta',
+            'allowHotkey': false,
+            'unhotkey': '',
+            'hotkeys': [ '' ]
+        },
+        'angle' : {
+            'screenDisplay': '&#8736;',
+            'mathjaxString': '/_',
+            'allowHotkey': false,
+            'unhotkey': '',
+            'hotkeys': [ '' ]
+        },
         'degree' : {
             'screenDisplay': '&#xb0',
             'mathjaxString': '^@',
@@ -197,14 +214,14 @@ export class JkOperatorButtonComponent {
             'mathjaxString': '>',
             'allowHotkey': true,
             'unhotkey': '>',
-            'hotkeys': [ '' ]
+            'hotkeys': [ '>' ]
         },
         'lt' : {
             'screenDisplay': '&lt;',
             'mathjaxString': '<',
             'allowHotkey': true,
             'unhotkey': '<',
-            'hotkeys': [ '' ]
+            'hotkeys': [ '<' ]
         },
         'point' : {
             'screenDisplay': '.',

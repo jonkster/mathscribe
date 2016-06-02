@@ -181,7 +181,7 @@ export class PaperComponent {
 
         // make terms greedy near '/' - except when space or = detected as this
         // allows neater entry of fractions
-        st = st.replace(/\/([^#=\)]+)/g, "/($1)");
+        st = st.replace(/\/([^#=\_)]+)/g, "/($1)");
         st = st.replace(/([^\(=#]+)\//g, "($1)/");
         
         // if a 'c' is entered it may conflict with our marks by being read as a 'cc'
@@ -309,6 +309,8 @@ export class PaperComponent {
             this.mathjaxInputStrings.push('');
             this.rawStructure.push([]);
         }
+        this.reparse();
+        this.cursorToEnd();
     }
 
     getTokenNodes(node, nodeList) {
@@ -460,6 +462,12 @@ export class PaperComponent {
                 } else if (lookAhead.match(/^\^@/)) {
                     state = 'degree';
                     i += 1;
+                } else if (lookAhead.match(/^\/_/)) {
+                    state = 'angle';
+                    i += 1;
+                } else if (lookAhead.match(/^theta/)) {
+                    state = 'variable';
+                    i += 4;
                 } else if (ch == '#') {
                     state = 'space';
                 } else if (ch == '=') {

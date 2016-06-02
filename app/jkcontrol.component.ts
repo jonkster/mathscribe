@@ -18,7 +18,6 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
         margin: 0.5em;
         font-size: 1.2em;
         padding: 0.2em 1em;
-        border: 3px solid blue;
         float: left;
     }
     button:disabled {

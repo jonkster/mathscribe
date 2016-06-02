@@ -9,10 +9,13 @@ import { ConfigurationComponent } from './configuration.component';
 @Component({
     selector: 'my-app',
     template: `
-    <h2>{{title}} v{{version}} | <a [routerLink]="['Configuration']">Configuration</a> | <a [routerLink]="['Paper']">Paper</a></h2>
     <router-outlet></router-outlet>
+    <h2>{{title}} v{{version}} | <!--<a [routerLink]="['my-app']">Home</a>--> <a [routerLink]="['Configuration']">Configuration </a>&nbsp;&nbsp;<a [routerLink]="['Paper']">Paper</a></h2>
     `,
-    styles: [`h2 {font-size:smaller;} `],
+     styles: [`
+         h2 {font-size:small;} 
+         .router-link-active { display: none; width: 3em; }
+     `],
     directives: [  ROUTER_DIRECTIVES ],
     providers: [ ROUTER_PROVIDERS ]
 })
@@ -32,6 +35,6 @@ import { ConfigurationComponent } from './configuration.component';
 
 export class AppComponent {
     title = 'Maths Scribe';
-    version = '0.0';
+    version = '0.1';
 }
 
