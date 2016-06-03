@@ -83,7 +83,6 @@ export class JkControlButtonComponent {
     controls = {
         'clear' : {
             'screenDisplay': 'clear',
-            'hotkey': 'insert',
         },
         'toggleHotkeys' : {
             'screenDisplay': 'hotkeys',
@@ -122,6 +121,7 @@ export class JkControlButtonComponent {
         },
         'paste' : {
             'screenDisplay': 'paste',
+            'hotkey': 'insert',
         },
         'undo' : {
             'screenDisplay': 'undo',

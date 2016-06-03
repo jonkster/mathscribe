@@ -22,12 +22,15 @@ export class PaperComponent {
     big = false;
 
     caretSymbol = "\u2336";
-    mathjaxMarker = 'color{red}{ !! }';
+    mathjaxMarker = 'color{gray}{ !! }';
     markerLength = this.mathjaxMarker.length;
 
     rawStructure = [];
     markerVisibility = [];
     undoBuffer = [];
+    simpleText = '';
+
+    grabKeys = true;
 
     keystrokeTranslate = true;
     markStartPos = 0;
@@ -155,7 +158,7 @@ export class PaperComponent {
             }
 
             if (this.markerVisibility[this.lineIndex] && i == this.markStartPos) {
-                st += this.mathjaxMarker; 
+                st += '!!'; 
                 markerAdded = true;
             }
 
@@ -171,11 +174,8 @@ export class PaperComponent {
 
         }
         if (! markerAdded && this.markerVisibility[this.lineIndex]) {
-                st += this.mathjaxMarker; 
+                st += '!!'; 
         }
-        // distinguish if cursor is just before the '^' of a power expression
-        // as the '^' will be invisible
-        st = st.replace(/\^color{red}/, '^color{green}');
 
         /*st = st.replace(/#+([\/\+\*-\^])/, "$1");
         st = st.replace(/([\/\+\*-\^])#+/, "$1");*/
@@ -185,11 +185,15 @@ export class PaperComponent {
         st = st.replace(/\/([^#=\_)]+)/g, "/($1)");
         st = st.replace(/([^\(=#]+)\//g, "($1)/");
         
-        // if a 'c' is entered it may conflict with our marks by being read as a 'cc'
-        st = st.replace(/ccolor/g, "c#color");
-        st = st.replace(/ccancel/g, "c#cancel");
         // make things like cancel{12}3 become (cancel{12}3) as it formats better
         st = st.replace(/(cancel{\d+}\d+)\//g, "($1)/");
+
+        st = st.replace(/ +/g, '#');
+        st = st.replace(/##+/g, '#');
+        // wrap sqrt terms in brackets
+        //st = st.replace(/sqrt([^\(#][^#|!]+)/g, 'sqrt($1)');
+
+        st = st.replace(/!!/g, this.mathjaxMarker);
 
         // merge consecutive crossouts into one crossout
         if (crossed.length > 0) {
@@ -197,7 +201,41 @@ export class PaperComponent {
                 this.chosen = this.chosen.replace(/cancel{(.*)}/, "$1");
         }
 
+        // distinguish if cursor is just before the '^' of a power expression
+        // as the '^' will be invisible
+        st = st.replace(/\^color{gray}/, '^color{green}');
+        // if a 'c' is entered it may conflict with our marks by being read as a 'cc'
+        st = st.replace(/ccolor/g, "c#color");
+        st = st.replace(/ccancel/g, "c#cancel");
+
+
         this.mathjaxInputStrings[this.lineIndex] = st;
+
+        var simp = this.unparseStructure();
+        simp = simp.replace(/#/g,' ');
+        simp = simp.replace(/xx/g,'&#x0d7;');
+        simp = simp.replace(/sqrt/g,'&#x221a;');
+        var cancelled = simp.match(/cancel{.*?}/g);
+        if (cancelled) {
+            for (var i = 0; i < cancelled.length; i++) {
+                var term = cancelled[i];
+                var rep = '';
+                var body = term.replace(/cancel{(.*?)}/, "$1");
+                for (var j = 0; j < body.length; j++) {
+                    rep += body[j] + '&#x336;';
+                }
+                simp = simp.replace(term, rep);
+            }
+        }
+        console.log(simp);
+        this.simpleText = simp;
+    }
+
+    addLine(txt) {
+        txt = txt.replace(/\s+/g, '');
+        this.mathjaxInputStrings[this.lineIndex] = txt;
+        this.tokenise(txt);
+        this.cursorToEnd();
     }
 
 
@@ -316,7 +354,7 @@ export class PaperComponent {
 
     getTokenNodes(node, nodeList) {
         // get all mathjax token nodes in the given node root
-        if (node.className != undefined)
+        if (node.className != undefined && node.className.match != undefined)
         {
             if (node.className.match(/mo|mn|msup|mi/)) {
                 nodeList.push(node);
@@ -331,13 +369,23 @@ export class PaperComponent {
     }
 
     keyInput(ev) {
+        if (! this.grabKeys){
+            return;
+        }
+
         if (ev.ctrlKey || ev.altKey || ev.metaKey) {
             return;
         }
+
         var key = this.keyCodeTrans[ev.which];
         if (key.lower.match(/shift|alt|ctrl/)) {
             return;
         }
+
+        if (ev.shiftKey && key.lower == 'insert') {
+            return;
+        }
+
         var ch = key.lower;
         if (ev.shiftKey && key.upper != '') {
             ch = key.upper;

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A simple application to assist people with hand writing difficulties, to show arithmetical working.",
   "scripts": {
-    "start": "tsc && concurrently \"npm run tsc:w\" \"npm run lite\" \"node ws/recogniser.js\" ",
+    "start": "tsc && concurrently \"npm run tsc:w\" \"npm run lite\"  ",
     "lite": "lite-server",
     "postinstall": "typings install",
     "tsc": "tsc",

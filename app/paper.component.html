@@ -104,7 +104,13 @@
          <jk-control-button [control]="'deleteCrossed'" [disabled]="lineIsEmpty()" (notify)="removeCrossout()"></jk-control-button>
          <jk-control-button [control]="'paste'" [disabled]="chosen == ''" (notify)="paste()"></jk-control-button>
          <jk-control-button [control]="'undo'" [disabled]="undoBuffer.length == 0" (notify)="undo()"></jk-control-button>
-         <span class="status" *ngIf="chosen.length > 0">paste: {{chosen}}</span>
+         paste:<span class="status" *ngIf="chosen.length > 0">{{chosen}}</span>
+        </div>
+        <div class="keep-line">
+            <!--<jk-operator-button [operator]="'grabKeys'" (notify)="grabKeys = ! grabKeys"></jk-operator-button>-->
+            <div style="float:right; width:20em; height:2em; border: 1px solid black;" id="editText" #box contenteditable="true"
+                (focus)="grabKeys = false;" (blur)="addLine(box.innerText); grabKeys = true;" [(innerHTML)]="simpleText"></div>
+            <!--<input #box (keyup)="addLine(box.value)"/>-->
+        </div>
     </div>
 </div>
-<input [(ngModel)]="mathjaxInputStrings[lineIndex]"/>
