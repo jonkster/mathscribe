@@ -168,6 +168,13 @@ export class JkOperatorButtonComponent {
             'unhotkey': '',
             'hotkeys': [ 'r' ]
         },
+        'pi' : {
+            'screenDisplay': '&#x3c0',
+            'mathjaxString': 'pi',
+            'allowHotkey': false,
+            'unhotkey': '',
+            'hotkeys': [ '' ]
+        },
         'space' : {
             'screenDisplay': '&lt;space&gt;',
             'mathjaxString': '#',

@@ -520,6 +520,9 @@ export class PaperComponent {
                 } else if (lookAhead.match(/^theta/)) {
                     state = 'variable';
                     i += 4;
+                } else if (lookAhead.match(/^pi/)) {
+                    state = 'pi';
+                    i += 1;
                 } else if (ch == '#') {
                     state = 'space';
                 } else if (ch == '=') {

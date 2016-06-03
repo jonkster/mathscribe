@@ -31,6 +31,7 @@
         <jk-control-button [control]="'enter'" [disabled]="lineIsEmpty()" (notify)="enter()"></jk-control-button>
     </div>
     <div class="opButtons grid-item" [ngGridItem]="{'col': 3, 'row': 3, 'sizex': 3, 'sizey': 1}">
+        <jk-operator-button [operator]="'pi'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'theta'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'degree'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
         <jk-operator-button [operator]="'flip'" (notify)="addSymbol($event)" [allowHotkeys]="true"></jk-operator-button>
