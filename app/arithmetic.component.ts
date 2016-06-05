@@ -7,14 +7,14 @@ import { JkControlButtonComponent } from './jkcontrol.component';
 declare var MathJax: any;
 
 @Component({
-  selector: 'my-paper',
-  templateUrl: 'app/paper.component.html',
-  styleUrls: ['app/paper.component.css', 'node_modules/angular2-grid/dist/NgGrid.css'],
+  selector: 'my-arithmetic',
+  templateUrl: 'app/arithmetic.component.html',
+  styleUrls: ['app/arithmetic.component.css', 'node_modules/angular2-grid/dist/NgGrid.css'],
   directives: [  MathJaxDirective, JkOperatorButtonComponent , JkControlButtonComponent, NgGrid, NgGridItem ],
   styles: [`
   `]
 })
-export class PaperComponent {
+export class ArithmeticComponent {
     @ViewChildren(JkOperatorButtonComponent) operatorButtons;
     @ViewChildren(JkControlButtonComponent) controlButtons;
 

@@ -3,14 +3,21 @@ import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS } from '@angular/route
 
 import './rxjs-operators';
 
-import { PaperComponent } from './paper.component';
+import { ArithmeticComponent } from './arithmetic.component';
 import { ConfigurationComponent } from './configuration.component';
+import { SketchComponent } from './sketch.component';
 
 @Component({
     selector: 'my-app',
     template: `
     <router-outlet></router-outlet>
-    <h2>{{title}} v{{version}} | <a [routerLink]="['Configuration']">Configuration </a>&nbsp;&nbsp;<a [routerLink]="['Paper']">Paper</a></h2>
+    <h2>{{title}} v{{version}} | 
+                <a [routerLink]="['Configuration']">Configuration </a>
+                &nbsp;&nbsp;
+                <a [routerLink]="['Arithmetic']">Arithmetic</a>
+                &nbsp;&nbsp;
+                <a [routerLink]="['Sketch']">Sketch</a>
+    </h2>
     `,
      styles: [`
          h2 {font-size:small;} 
@@ -24,16 +31,21 @@ import { ConfigurationComponent } from './configuration.component';
     {
         path: "/",          
         name: "root",      
-        redirectTo: [ "Paper"] },
+        redirectTo: [ "Arithmetic"] },
     {
         path: '/config',
         name: 'Configuration',
         component: ConfigurationComponent
     },
     {
-        path: '/paper',
-        name: 'Paper',
-        component: PaperComponent
+        path: '/arithmetic',
+        name: 'Arithmetic',
+        component: ArithmeticComponent
+    },
+    {
+        path: '/sketch',
+        name: 'Sketch',
+        component: SketchComponent
     }
   ])
 
