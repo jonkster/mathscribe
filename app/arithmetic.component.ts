@@ -227,7 +227,6 @@ export class ArithmeticComponent {
                 simp = simp.replace(term, rep);
             }
         }
-        console.log(simp);
         this.simpleText = simp;
     }
 
