@@ -10,6 +10,7 @@ export class ThreeDirective {
     scene = undefined;
     camera = undefined;
     renderer = undefined;
+    composer = undefined;
 
     cursor = undefined;
 
@@ -17,6 +18,7 @@ export class ThreeDirective {
     marking = false;
     bending = false;
     circle = false;
+    jitter = 25;
 
     startMarker = undefined;
     midMarker = undefined;
@@ -24,13 +26,20 @@ export class ThreeDirective {
     lineNo = 0;
     lines = [];
 
+    pencilColour = 0x101030;
+    draftColour = 0xa0a0a0;
+    clearColour = 0xf7f7f7;
+    cursorColour = 0xff0000;
+    midColour = 0x00ff00;
+    startColour = 0x00ffff;
+
     constructor(private el: ElementRef) {
-        el.nativeElement.style.backgroundColor = '#e0e0e0';
+        el.nativeElement.style.backgroundColor = '#ffffff';
         this.init(el);
         this.anim();
     }
 
-    addCurvedGhost(p0, p1, p2, fullCircle, colour) {
+    addCurvedGhost(p0, p1, p2, fullCircle, draft, colour) {
         var mid = this.findMidPoint(p0, p2);
         var dx = mid.x - p0.x;
         var dy = mid.y - p0.y;
@@ -62,7 +71,7 @@ export class ThreeDirective {
         var curve = new THREE.EllipseCurve( 
             mid.x, mid.y,
             rad,             
-            ext             
+            ext,
             0, end,
             flip,
             ang 
@@ -70,8 +79,14 @@ export class ThreeDirective {
 
         var path = new THREE.Path( curve.getPoints( 50 ) );
         var geometry = path.createPointsGeometry( 50 );
+        geometry.computeLineDistances();
 
-        var material = new THREE.LineBasicMaterial( { color : colour } );
+        var material = undefined;
+        if (draft) {
+                material = new THREE.LineDashedMaterial( { scale: 0.1, color : colour, linewidth: 1 } );
+        } else {
+                material = new THREE.LineBasicMaterial( { color : colour, linewidth: 10 } );
+        }
         this.curvedGhost = new THREE.Line( geometry, material );
         this.curvedGhost.name = 'line-' + this.lineNo++;
         this.scene.add(this.curvedGhost);
@@ -83,7 +98,7 @@ export class ThreeDirective {
         var vertArray = lineGeometry.vertices;
         vertArray.push( new THREE.Vector3(p0.x, p0.y, 0), new THREE.Vector3(p1.x, p1.y, 0) );
         lineGeometry.computeLineDistances();
-        var lineMaterial = new THREE.LineBasicMaterial( { color: colour } );
+        var lineMaterial = new THREE.LineBasicMaterial( { color: colour, linewidth: 2  } );
         var line = new THREE.Line( lineGeometry, lineMaterial );
         line.name = 'line-' + this.lineNo++;
         this.scene.add(line);
@@ -98,6 +113,7 @@ export class ThreeDirective {
         this.cursor.rotation.x += 0.1;
         this.cursor.rotation.y += 0.13;
 
+        this.composer.render( this.scene, this.camera );
         this.renderer.render( this.scene, this.camera );
     }
 
@@ -134,22 +150,40 @@ export class ThreeDirective {
         this.camera = new THREE.PerspectiveCamera( 75, 1, 1, 10000 );
         this.camera.position.z = 1000;
 
-        var geometry = new THREE.BoxGeometry( 20, 20, 20 );
-        var material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: false } );
+        var geometry = new THREE.BoxGeometry( 60, 60, 60 );
+        var material = new THREE.MeshBasicMaterial( { color: this.cursorColour, wireframe: false } );
         this.cursor = new THREE.Mesh( geometry, material );
         this.cursor.position.setZ(5);
         this.scene.add( this.cursor );
 
 
-        this.startMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, 0x007f00);
+        this.startMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.startColour);
         this.scene.add( this.startMarker );
-        this.midMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, 0x007f7f);
+        this.midMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.midColour);
         this.scene.add( this.midMarker );
 
         this.renderer = new THREE.WebGLRenderer();
+        this.renderer.setClearColor( this.clearColour, 1 );
         this.renderer.setSize( 800, 800 );
-
         el.nativeElement.appendChild( this.renderer.domElement );
+
+this.composer = new THREE.EffectComposer( this.renderer );
+this.composer.addPass( new THREE.RenderPass( this.scene, this.camera ) );
+
+var effect = new THREE.ShaderPass( THREE.DotScreenShader );
+effect.uniforms[ 'scale' ].value = 4;
+this.composer.addPass( effect );
+
+/*var hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
+hblur.uniforms[ 'h' ].value = 1 / 400;
+this.composer.addPass( hblur );
+var vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
+vblur.uniforms[ 'v' ].value = 1 / 400;
+vblur.renderToScreen = true;
+this.composer.addPass( vblur );*/
+
+
+
 
     }
 
@@ -165,7 +199,7 @@ export class ThreeDirective {
         }
 
         this.scene.remove(this.curvedGhost);
-        this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, 0x3f3f3f);
+        this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, true, this.draftColour);
 
 
         p[0] = activeMark.position.clone();
@@ -181,30 +215,30 @@ export class ThreeDirective {
         }
         else if (key.lower == 'right arrow') {
             if (activeMark.position.x < 700) {
-                activeMark.position.x += this.stepSize;
+                activeMark.position.x += this.stepSize + this.makeJitter();
             }
         }
         else if (key.lower == 'left arrow') {
             if (activeMark.position.x > -700) {
-                activeMark.position.x -= this.stepSize;
+                activeMark.position.x -= this.stepSize + this.makeJitter();
             }
         }
         else if (key.lower == 'up arrow') {
             if (activeMark.position.y < 700) {
-                activeMark.position.y += this.stepSize;
+                activeMark.position.y += this.stepSize + this.makeJitter();
             }
         }
         else if (key.lower == 'down arrow') {
             if (activeMark.position.y > -700) {
-                activeMark.position.y -= this.stepSize;
+                activeMark.position.y -= this.stepSize + this.makeJitter();
             }
         }
         else if (key.lower == 'd') {
             this.marking = ! this.marking;
             if (this.marking) {
-                activeMark.material.color.setHex( 0xff7f7f );
+                activeMark.material.color.setHex( this.pencilColour );
             } else {
-                activeMark.material.color.setHex( 0x3f7f3f );
+                activeMark.material.color.setHex( this.draftColour );
             }
         }
         else if (key.lower == ' ') {
@@ -214,9 +248,10 @@ export class ThreeDirective {
             if (this.bending) {
                 this.bending = false;
             }
-            this.curvedGhost.material.color.setHex( 0xff0000 );
-            this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, 0xff0000);
+            this.curvedGhost.material.color.setHex( this.pencilColour );
+            this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, false, this.pencilColour);
             this.moveStartToCursor();
+                this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, true, this.draftColour);
         }
         else if (key.lower == 'c') {
             this.bending = ! this.bending;
@@ -239,10 +274,15 @@ export class ThreeDirective {
 
         if (this.marking) {
             if (p[1].x != p[0].x || p[1].y != p[0].y) {
-                this.addLine(p[0], p[1], 0xcc0000);
+                this.addLine(p[0], p[1], this.draftColour);
             }
         }
 
+    }
+
+    makeJitter() {
+        var j = (this.jitter/2 - (this.jitter * Math.random()));
+        return j;
     }
 
     makeMarker(p0, size, colour) {
