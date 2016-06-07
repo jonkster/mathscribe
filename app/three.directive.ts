@@ -12,26 +12,41 @@ export class ThreeDirective {
     renderer = undefined;
     composer = undefined;
 
-    cursor = undefined;
 
     stepSize = 10;
-    marking = false;
+    dragging = false;
     bending = false;
+    filling = false;
     circle = false;
-    jitter = 25;
 
     startMarker = undefined;
     midMarker = undefined;
     curvedGhost = undefined;
+    cursor = undefined;
     lineNo = 0;
     lines = [];
 
-    pencilColour = 0x101030;
-    draftColour = 0xa0a0a0;
-    clearColour = 0xf7f7f7;
+    palete = [
+        0xf7f7f7,
+        0x101010,
+        0x303030,
+        0x505050,
+        0x707070,
+        0x909090,
+        0xb0b0b0,
+        0xd0d0d0
+    ]
+
+    pencilColour = this.palete[3];
+    draftColour =  this.palete[6];
+    clearColour = this.palete[0];
     cursorColour = 0xff0000;
     midColour = 0x00ff00;
     startColour = 0x00ffff;
+
+    currentLineWidth = 5;
+    blurFactor = 2 // 0 = none, 10 = very blurred
+    jitter = this.currentLineWidth/2;
 
     constructor(private el: ElementRef) {
         el.nativeElement.style.backgroundColor = '#ffffff';
@@ -39,7 +54,58 @@ export class ThreeDirective {
         this.anim();
     }
 
-    addCurvedGhost(p0, p1, p2, fullCircle, draft, colour) {
+    addBlob(x, y, draft, colour, big) {
+            var geometry = undefined;
+            var material = undefined;
+            var c = colour;
+            if (! draft && colour != this.clearColour) {
+                var j = this.jitter * (0.5 - Math.random());
+                var ran = 16-Math.round(32*Math.random());
+                var r = (ran + (c >> 16)) & 255;
+                var g = (ran + (c >> 8)) & 255;
+                var b = (ran + c) & 255;
+                c = (r<<16) + (g<<8) + b;
+            }
+
+            if (draft) {
+                material = new THREE.MeshBasicMaterial( { color: this.draftColour, wireframe: true } );
+                geometry = new THREE.CircleGeometry(this.currentLineWidth, 5);
+            } else {
+                var scale = 2;
+                if (big) {
+                    scale = 4;
+                }
+                material = new THREE.MeshBasicMaterial( { color: c, wireframe: false } );
+                geometry = new THREE.CircleGeometry(scale * this.currentLineWidth + j, 10);
+            }
+            var circle = new THREE.Mesh(geometry, material);
+            circle.position.x = x;
+            circle.position.y = y;
+            circle.name = 'blob-' + this.lineNo++;
+            this.lines.push(circle);
+
+            if (draft) {
+                this.curvedGhost.add(circle);
+            } else {
+                this.scene.add(circle);
+            }
+    }
+
+    addBlurEffect() {
+        var composer = new THREE.EffectComposer( this.renderer );
+        composer.addPass( new THREE.RenderPass( this.scene, this.camera ) );
+
+        var hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
+        var vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
+        hblur.uniforms[ 'h' ].value = this.blurFactor / 2000;
+        vblur.uniforms[ 'v' ].value = this.blurFactor / 2000;
+        composer.addPass( hblur );
+        composer.addPass( vblur );
+        vblur.renderToScreen = true;
+        return composer;
+    }
+
+    addCurvedGhost(p0, p1, p2, fullCircle, colour) {
         var mid = this.findMidPoint(p0, p2);
         var dx = mid.x - p0.x;
         var dy = mid.y - p0.y;
@@ -77,20 +143,18 @@ export class ThreeDirective {
             ang 
         ) ;
 
-        var path = new THREE.Path( curve.getPoints( 50 ) );
-        var geometry = path.createPointsGeometry( 50 );
+        var path = new THREE.Path( curve.getPoints( 100 ) );
+        var geometry = path.createPointsGeometry( 100 );
         geometry.computeLineDistances();
-
-        var material = undefined;
-        if (draft) {
-                material = new THREE.LineDashedMaterial( { scale: 0.1, color : colour, linewidth: 1 } );
-        } else {
-                material = new THREE.LineBasicMaterial( { color : colour, linewidth: 10 } );
+        var v = geometry.vertices;
+        if (this.curvedGhost != undefined) {
+                this.scene.remove(this.curvedGhost);
         }
-        this.curvedGhost = new THREE.Line( geometry, material );
-        this.curvedGhost.name = 'line-' + this.lineNo++;
+        this.curvedGhost = new THREE.Object3D();
         this.scene.add(this.curvedGhost);
-        this.lines.push(this.curvedGhost);
+        for (var i = 0; i < v.length; i++) {
+            this.addBlob(v[i].x, v[i].y, true, colour, false);
+        }
     }
 
     addLine(p0, p1, colour) {
@@ -98,7 +162,7 @@ export class ThreeDirective {
         var vertArray = lineGeometry.vertices;
         vertArray.push( new THREE.Vector3(p0.x, p0.y, 0), new THREE.Vector3(p1.x, p1.y, 0) );
         lineGeometry.computeLineDistances();
-        var lineMaterial = new THREE.LineBasicMaterial( { color: colour, linewidth: 2  } );
+        var lineMaterial = new THREE.LineBasicMaterial( { color: colour, linewidth: this.currentLineWidth  } );
         var line = new THREE.Line( lineGeometry, lineMaterial );
         line.name = 'line-' + this.lineNo++;
         this.scene.add(line);
@@ -114,11 +178,11 @@ export class ThreeDirective {
         this.cursor.rotation.y += 0.13;
 
         this.composer.render( this.scene, this.camera );
-        this.renderer.render( this.scene, this.camera );
     }
 
 
     clearAll() {
+        this.scene.remove(this.curvedGhost);
         for (var i = 0; i < this.lines.length; i++) {
             this.scene.remove(this.lines[i]);
         }
@@ -150,13 +214,16 @@ export class ThreeDirective {
         this.camera = new THREE.PerspectiveCamera( 75, 1, 1, 10000 );
         this.camera.position.z = 1000;
 
+        // make main cursor
         var geometry = new THREE.BoxGeometry( 60, 60, 60 );
-        var material = new THREE.MeshBasicMaterial( { color: this.cursorColour, wireframe: false } );
+        var material = new THREE.MeshBasicMaterial( { color: this.cursorColour, wireframe: true } );
         this.cursor = new THREE.Mesh( geometry, material );
         this.cursor.position.setZ(5);
+        var cursorDot = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.cursorColour);
+        this.cursor.add(cursorDot);
         this.scene.add( this.cursor );
 
-
+        // add 'helper' cursors
         this.startMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.startColour);
         this.scene.add( this.startMarker );
         this.midMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.midColour);
@@ -167,24 +234,7 @@ export class ThreeDirective {
         this.renderer.setSize( 800, 800 );
         el.nativeElement.appendChild( this.renderer.domElement );
 
-this.composer = new THREE.EffectComposer( this.renderer );
-this.composer.addPass( new THREE.RenderPass( this.scene, this.camera ) );
-
-var effect = new THREE.ShaderPass( THREE.DotScreenShader );
-effect.uniforms[ 'scale' ].value = 4;
-this.composer.addPass( effect );
-
-/*var hblur = new THREE.ShaderPass( THREE.HorizontalBlurShader );
-hblur.uniforms[ 'h' ].value = 1 / 400;
-this.composer.addPass( hblur );
-var vblur = new THREE.ShaderPass( THREE.VerticalBlurShader );
-vblur.uniforms[ 'v' ].value = 1 / 400;
-vblur.renderToScreen = true;
-this.composer.addPass( vblur );*/
-
-
-
-
+        this.composer = this.addBlurEffect();
     }
 
     keyInput(key) {
@@ -198,12 +248,17 @@ this.composer.addPass( vblur );*/
             activeMark = this.midMarker;
         }
 
-        this.scene.remove(this.curvedGhost);
-        this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, true, this.draftColour);
+        if (this.curvedGhost != undefined) {
+            this.scene.remove(this.curvedGhost);
+        }
+        this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, this.draftColour);
 
 
         p[0] = activeMark.position.clone();
 
+        if (key.lower.match(/^[0-7]$/)) {
+            this.pencilColour = this.palete[key.lower];
+        }
         if (key.lower == 'e') {
             this.clearAll();
         }
@@ -215,50 +270,52 @@ this.composer.addPass( vblur );*/
         }
         else if (key.lower == 'right arrow') {
             if (activeMark.position.x < 700) {
-                activeMark.position.x += this.stepSize + this.makeJitter();
+                activeMark.position.x += this.stepSize;
             }
         }
         else if (key.lower == 'left arrow') {
             if (activeMark.position.x > -700) {
-                activeMark.position.x -= this.stepSize + this.makeJitter();
+                activeMark.position.x -= this.stepSize;
             }
         }
         else if (key.lower == 'up arrow') {
             if (activeMark.position.y < 700) {
-                activeMark.position.y += this.stepSize + this.makeJitter();
+                activeMark.position.y += this.stepSize;
             }
         }
         else if (key.lower == 'down arrow') {
             if (activeMark.position.y > -700) {
-                activeMark.position.y -= this.stepSize + this.makeJitter();
+                activeMark.position.y -= this.stepSize;
             }
         }
+        else if (key.lower == 'x') {
+            activeMark.material.color.setHex( this.cursorColour );
+            this.bending = false;
+            this.circle = false;
+            this.dragging = false;
+            this.moveStartToCursor();
+            this.addBlob(this.cursor.position.x, this.cursor.position.y, false, this.pencilColour, true);
+        }
         else if (key.lower == 'd') {
-            this.marking = ! this.marking;
-            if (this.marking) {
-                activeMark.material.color.setHex( this.pencilColour );
-            } else {
-                activeMark.material.color.setHex( this.draftColour );
-            }
+            this.dragging = ! this.dragging;
         }
         else if (key.lower == ' ') {
             this.moveStartToCursor();
         }
         else if (key.lower == 'j') {
-            if (this.bending) {
-                this.bending = false;
-            }
-            this.curvedGhost.material.color.setHex( this.pencilColour );
-            this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, false, this.pencilColour);
+            this.bending = false;
+            this.circle = false;
+            this.dragging = false;
+            this.makeGhostReal();
+            //this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, false, this.pencilColour);
             this.moveStartToCursor();
-                this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, true, this.draftColour);
         }
         else if (key.lower == 'c') {
-            this.bending = ! this.bending;
+            this.bending = true;
             this.circle = true;
         }
         else if (key.lower == 'b') {
-            this.bending = ! this.bending;
+            this.bending = true;
             this.circle = false;
         }
         else if (key.lower == 'h') {
@@ -272,17 +329,26 @@ this.composer.addPass( vblur );*/
             this.midMarker.position.copy(mid);
         }
 
-        if (this.marking) {
-            if (p[1].x != p[0].x || p[1].y != p[0].y) {
-                this.addLine(p[0], p[1], this.draftColour);
-            }
+        if (this.dragging) {
+            this.addBlob(this.cursor.position.x, this.cursor.position.y, false, this.pencilColour, false);
+        }
+        if (this.dragging) {
+            this.cursor.material.color.setHex( this.pencilColour );
+        } else {
+            this.cursor.material.color.setHex( this.cursorColour );
         }
 
     }
 
-    makeJitter() {
-        var j = (this.jitter/2 - (this.jitter * Math.random()));
-        return j;
+    makeGhostReal() {
+        var obj = this;
+        this.curvedGhost.traverse(function(child) {
+            obj.addBlob(child.position.x, child.position.y, false, obj.pencilColour, false);
+        });
+        if (this.curvedGhost != undefined) {
+                this.scene.remove(this.curvedGhost);
+        }
+        this.curvedGhost = new THREE.Object3D();
     }
 
     makeMarker(p0, size, colour) {

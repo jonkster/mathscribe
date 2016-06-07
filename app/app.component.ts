@@ -10,7 +10,6 @@ import { SketchComponent } from './sketch.component';
 @Component({
     selector: 'my-app',
     template: `
-    <router-outlet></router-outlet>
     <h2>{{title}} v{{version}} | 
                 <a [routerLink]="['Configuration']">Configuration </a>
                 &nbsp;&nbsp;
@@ -18,9 +17,10 @@ import { SketchComponent } from './sketch.component';
                 &nbsp;&nbsp;
                 <a [routerLink]="['Sketch']">Sketch</a>
     </h2>
+    <router-outlet></router-outlet>
     `,
      styles: [`
-         h2 {font-size:small;} 
+         h2 {font-size:medium;} 
          .router-link-active { display: none; width: 3em; }
      `],
     directives: [  ROUTER_DIRECTIVES ],
