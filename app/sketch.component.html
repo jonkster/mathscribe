@@ -2,6 +2,9 @@
     <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" (window:keydown)="keyInput($event)" myThreeD ></div>
 
     <div class="grid-item" [ngGridItem]="{'col': 2, 'row': 1, 'sizex': 1, 'sizey': 1}">
+        <div>
+            <button id="download-link" (click)="printSketch()">Download Sketch</button>
+        </div>
         <pre>
 
 J : [J]oin (joins green dot to red dot)
@@ -18,6 +21,9 @@ X: Blob
 D: [D]rag
 E: [E]rase Everything
 H: return to [H]ome position
+L: return to [L]ast position
+
+P: [P]rint Sketch
 
 0: rub out colour
 1: dark colour
@@ -25,9 +31,12 @@ H: return to [H]ome position
 7: light colour
         </pre>
         <div>
+            <span>Pencil Colour</span>&nbsp;:&nbsp;<span class="status-indicator" [ngStyle]="{'background-color': pencilColour}">&nbsp;</span>
+        </div>
+        <div>
             <jk-operator-button [operator]="'colour Dark'" (notify)="changeColour(1)" [allowHotkeys]="false"></jk-operator-button>
-            <jk-operator-button [operator]="'colour Medium'" (notify)="changeColour(3)" [allowHotkeys]="false"></jk-operator-button>
-            <jk-operator-button [operator]="'colour Light'" (notify)="changeColour(7)" [allowHotkeys]="false"></jk-operator-button>
+            <jk-operator-button [operator]="'colour Medium'" (notify)="changeColour(5)" [allowHotkeys]="false"></jk-operator-button>
+            <jk-operator-button [operator]="'colour Light'" (notify)="changeColour(8)" [allowHotkeys]="false"></jk-operator-button>
             <jk-operator-button [operator]="'Rub Out'" (notify)="changeColour(0)" [allowHotkeys]="false"></jk-operator-button>
         </div>
 </div>

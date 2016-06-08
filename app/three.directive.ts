@@ -23,18 +23,23 @@ export class ThreeDirective {
     midMarker = undefined;
     curvedGhost = undefined;
     cursor = undefined;
-    lineNo = 0;
+    lastPos = undefined;
+    dots = [];
     lines = [];
+    draggedLineSpline = [];
+    ghostLine = undefined;
 
     palete = [
         0xf7f7f7,
         0x101010,
+        0x202020,
         0x303030,
+        0x404040,
         0x505050,
+        0x606060,
         0x707070,
-        0x909090,
-        0xb0b0b0,
-        0xd0d0d0
+        0x808080,
+        0x909090
     ]
 
     pencilColour = this.palete[3];
@@ -45,8 +50,7 @@ export class ThreeDirective {
     startColour = 0x00ffff;
 
     currentLineWidth = 5;
-    blurFactor = 2 // 0 = none, 10 = very blurred
-    jitter = this.currentLineWidth/2;
+    blurFactor = 0 // 0 = none, 10 = very blurred
 
     constructor(private el: ElementRef) {
         el.nativeElement.style.backgroundColor = '#ffffff';
@@ -55,40 +59,13 @@ export class ThreeDirective {
     }
 
     addBlob(x, y, draft, colour, big) {
-            var geometry = undefined;
-            var material = undefined;
-            var c = colour;
-            if (! draft && colour != this.clearColour) {
-                var j = this.jitter * (0.5 - Math.random());
-                var ran = 16-Math.round(32*Math.random());
-                var r = (ran + (c >> 16)) & 255;
-                var g = (ran + (c >> 8)) & 255;
-                var b = (ran + c) & 255;
-                c = (r<<16) + (g<<8) + b;
-            }
-
-            if (draft) {
-                material = new THREE.MeshBasicMaterial( { color: this.draftColour, wireframe: true } );
-                geometry = new THREE.CircleGeometry(this.currentLineWidth, 5);
-            } else {
-                var scale = 2;
-                if (big) {
-                    scale = 4;
-                }
-                material = new THREE.MeshBasicMaterial( { color: c, wireframe: false } );
-                geometry = new THREE.CircleGeometry(scale * this.currentLineWidth + j, 10);
-            }
-            var circle = new THREE.Mesh(geometry, material);
-            circle.position.x = x;
-            circle.position.y = y;
-            circle.name = 'blob-' + this.lineNo++;
-            this.lines.push(circle);
-
-            if (draft) {
-                this.curvedGhost.add(circle);
-            } else {
-                this.scene.add(circle);
-            }
+        var material = new THREE.MeshBasicMaterial( { color: colour, wireframe: false } );
+        var geometry = new THREE.CircleGeometry(4 * this.currentLineWidth, 10);
+        var circle = new THREE.Mesh(geometry, material);
+        circle.position.x = x;
+        circle.position.y = y;
+        this.dots.push(circle);
+        this.scene.add(circle);
     }
 
     addBlurEffect() {
@@ -105,7 +82,28 @@ export class ThreeDirective {
         return composer;
     }
 
-    addCurvedGhost(p0, p1, p2, fullCircle, colour) {
+
+    anim() {
+        requestAnimationFrame(()=> {
+            this.anim()
+        });
+
+        this.cursor.rotation.x += 0.1;
+        this.cursor.rotation.y += 0.13;
+
+        this.composer.render( this.scene, this.camera );
+    }
+
+
+    clearAll() {
+        this.scene.remove(this.ghostLine);
+        for (var i = 0; i < this.lines.length; i++) {
+            this.scene.remove(this.lines[i]);
+        }
+        this.lines = [];
+    }
+
+    createCurvedGeometry(p0, p1, p2, fullCircle) {
         var mid = this.findMidPoint(p0, p2);
         var dx = mid.x - p0.x;
         var dy = mid.y - p0.y;
@@ -143,50 +141,51 @@ export class ThreeDirective {
             ang 
         ) ;
 
-        var path = new THREE.Path( curve.getPoints( 100 ) );
-        var geometry = path.createPointsGeometry( 100 );
+        var points = (rad/5) + 5;
+        var path = new THREE.Path( curve.getPoints( points ) );
+        var geometry = path.createPointsGeometry( points );
         geometry.computeLineDistances();
-        var v = geometry.vertices;
-        if (this.curvedGhost != undefined) {
-                this.scene.remove(this.curvedGhost);
-        }
-        this.curvedGhost = new THREE.Object3D();
-        this.scene.add(this.curvedGhost);
-        for (var i = 0; i < v.length; i++) {
-            this.addBlob(v[i].x, v[i].y, true, colour, false);
-        }
+        return geometry;
     }
 
-    addLine(p0, p1, colour) {
-        var lineGeometry = new THREE.Geometry();
-        var vertArray = lineGeometry.vertices;
-        vertArray.push( new THREE.Vector3(p0.x, p0.y, 0), new THREE.Vector3(p1.x, p1.y, 0) );
-        lineGeometry.computeLineDistances();
-        var lineMaterial = new THREE.LineBasicMaterial( { color: colour, linewidth: this.currentLineWidth  } );
-        var line = new THREE.Line( lineGeometry, lineMaterial );
-        line.name = 'line-' + this.lineNo++;
-        this.scene.add(line);
-        this.lines.push(line);
+    createStraightGeometry(p0, p1, p2) {
+        var geometry = new THREE.Geometry();
+        geometry.vertices.push(
+            new THREE.Vector3(p0.x, p0.y, 0),
+            new THREE.Vector3(p1.x, p1.y, 0),
+            new THREE.Vector3(p2.x, p2.y, 0)
+        );
+        return geometry;
     }
 
-    anim() {
-        requestAnimationFrame(()=> {
-            this.anim()
+    drawGhostLines() {
+        if (this.ghostLine !== undefined) {
+            this.scene.remove(this.ghostLine);
+        }
+        var p0 = this.startMarker.position.clone();
+        var p1 = this.midMarker.position.clone();
+        var p2 = this.cursor.position.clone();
+        var g = undefined;
+        if (this.bending) {
+            g = this.createCurvedGeometry(p0, p1, p2, this.circle);
+        } else {
+            g = this.createStraightGeometry(p0, p1, p2);
+        }
+        g.computeLineDistances();
+
+        var lineScale = 1;
+        if (this.pencilColour == this.clearColour) {
+            lineScale = 2;
+        }
+        var m = new THREE.LineDashedMaterial({
+            color: this.draftColour,
+            linewidth: lineScale,
+            scale: 5,
+            dashSize: 2,
+            gapSize: 3
         });
-
-        this.cursor.rotation.x += 0.1;
-        this.cursor.rotation.y += 0.13;
-
-        this.composer.render( this.scene, this.camera );
-    }
-
-
-    clearAll() {
-        this.scene.remove(this.curvedGhost);
-        for (var i = 0; i < this.lines.length; i++) {
-            this.scene.remove(this.lines[i]);
-        }
-        this.lines = [];
+        this.ghostLine = new THREE.Line(g, m);
+        this.scene.add(this.ghostLine);
     }
 
 
@@ -230,7 +229,8 @@ export class ThreeDirective {
         this.scene.add( this.midMarker );
 
         this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setClearColor( this.clearColour, 1 );
+        this.renderer.preserveDrawingBuffer = true ;
+        this.renderer.setClearColor(this.clearColour, 1);
         this.renderer.setSize( 800, 800 );
         el.nativeElement.appendChild( this.renderer.domElement );
 
@@ -243,6 +243,13 @@ export class ThreeDirective {
             new THREE.Vector3,
         ];
 
+        if (this.lastPos === undefined) {
+            this.lastPos = this.startMarker.position.clone();
+        }
+
+        this.drawGhostLines();
+
+
         var activeMark = this.cursor;
         if (this.bending) {
             activeMark = this.midMarker;
@@ -251,15 +258,20 @@ export class ThreeDirective {
         if (this.curvedGhost != undefined) {
             this.scene.remove(this.curvedGhost);
         }
-        this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, this.draftColour);
-
 
         p[0] = activeMark.position.clone();
 
-        if (key.lower.match(/^[0-7]$/)) {
+        if (key.lower == '0') {
+            this.pencilColour = this.palete[0];
+            this.dragging = true;
+            this.startDragging();
+            this.moveStartToCursor();
+        } else if (key.lower.match(/^[1-9]$/)) {
             this.pencilColour = this.palete[key.lower];
         }
-        if (key.lower == 'e') {
+        else if (key.lower == 'p') {
+            this.printSketch();
+        } else if (key.lower == 'e') {
             this.clearAll();
         }
         else if (key.lower == 'f') {
@@ -267,6 +279,11 @@ export class ThreeDirective {
         }
         else if (key.lower == 's') {
             this.stepSize = 10;
+        }
+        else if (key.lower == 'l') {
+            this.cursor.position.copy(this.lastPos);
+            this.midMarker.position.copy(this.lastPos);
+            this.startMarker.position.copy(this.lastPos);
         }
         else if (key.lower == 'right arrow') {
             if (activeMark.position.x < 700) {
@@ -297,18 +314,29 @@ export class ThreeDirective {
             this.addBlob(this.cursor.position.x, this.cursor.position.y, false, this.pencilColour, true);
         }
         else if (key.lower == 'd') {
+            this.bending = false;
+            this.circle = false;
             this.dragging = ! this.dragging;
+            if (this.dragging) {
+                this.startDragging();
+            } else {
+                this.moveStartToCursor();
+            }
         }
         else if (key.lower == ' ') {
+            this.bending = false;
+            this.circle = false;
+            this.dragging = false;
             this.moveStartToCursor();
         }
         else if (key.lower == 'j') {
+            this.lastPos = this.startMarker.position.clone();
             this.bending = false;
             this.circle = false;
             this.dragging = false;
             this.makeGhostReal();
-            //this.addCurvedGhost(this.startMarker.position, this.midMarker.position,  this.cursor.position, this.circle, false, this.pencilColour);
             this.moveStartToCursor();
+            this.scene.remove(this.curvedGhost);
         }
         else if (key.lower == 'c') {
             this.bending = true;
@@ -319,6 +347,7 @@ export class ThreeDirective {
             this.circle = false;
         }
         else if (key.lower == 'h') {
+            this.lastPos = this.startMarker.position.clone();
             this.home();
         }
 
@@ -330,8 +359,17 @@ export class ThreeDirective {
         }
 
         if (this.dragging) {
-            this.addBlob(this.cursor.position.x, this.cursor.position.y, false, this.pencilColour, false);
+            var l = this.lines[this.lines.length-1];
+            this.scene.remove(l);
+            var dPos = this.cursor.position.clone();
+            var g = l.geometry.clone();
+            g.vertices.push(dPos);
+            l.geometry.dispose();
+            l.geometry = g;
+            l.geometry.verticesNeedUpdate = true;
+            this.scene.add(l);
         }
+
         if (this.dragging) {
             this.cursor.material.color.setHex( this.pencilColour );
         } else {
@@ -341,14 +379,15 @@ export class ThreeDirective {
     }
 
     makeGhostReal() {
-        var obj = this;
-        this.curvedGhost.traverse(function(child) {
-            obj.addBlob(child.position.x, child.position.y, false, obj.pencilColour, false);
+        var g = this.ghostLine.geometry.clone();
+        var m = new THREE.LineBasicMaterial({
+            color: this.pencilColour,
+            linewidth: this.currentLineWidth
         });
-        if (this.curvedGhost != undefined) {
-                this.scene.remove(this.curvedGhost);
-        }
-        this.curvedGhost = new THREE.Object3D();
+        var newLine = new THREE.Line(g, m);
+        this.scene.add(newLine);
+        this.lines.push(newLine);
+
     }
 
     makeMarker(p0, size, colour) {
@@ -359,7 +398,26 @@ export class ThreeDirective {
 
 
     moveStartToCursor() {
+        this.scene.remove(this.curvedGhost);
         this.startMarker.position.copy(this.cursor.position);
+    }
+
+    printSketch() {
+        var imgData = this.renderer.domElement.toDataURL();      
+        console.log(imgData);
+        return imgData;
+    }
+
+    startDragging() {
+        this.draggedLineSpline = [];
+        var m = new THREE.LineBasicMaterial({
+            color: this.pencilColour,
+            linewidth: this.currentLineWidth
+        });
+        var g = new THREE.Geometry();
+        var newLine = new THREE.Line(g, m);
+        this.lines.push(newLine);
+        this.scene.add(newLine);
     }
 
 }

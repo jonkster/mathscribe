@@ -11,19 +11,46 @@ import { JkOperatorButtonComponent } from './jkoperator.component';
   templateUrl: 'app/sketch.component.html',
   directives: [  NgGrid, NgGridItem, ThreeDirective, JkOperatorButtonComponent ],
   providers: [ KeyService ],
+  styles: [`
+      .status-indicator {
+        padding: 0.5em;
+        border: 1px solid black;
+      }
+      `]
 })
 export class SketchComponent {
     @ViewChildren(ThreeDirective) threeDirective;
 
+    pencilColour = '#ff0000';
+    drawer;
+
     constructor(private keyService: KeyService) { }
+
+    ngAfterViewInit() {
+        this.drawer = this.threeDirective.first;
+        this.changeColour(4);
+        console.log(this);
+    }
 
     keyInput(ev) {
         var key = this.keyService.keyInput(ev);
-        this.threeDirective.first.keyInput(key);
+        this.drawer.keyInput(key);
     }
 
     changeColour(v) {
-        var drawer = this.threeDirective.first;
-        drawer.pencilColour = drawer.palete[v];
+        var pc = this.drawer.palete[v];
+        this.drawer.pencilColour =  pc;
+        this.pencilColour = '#' + pc.toString(16);
     }
+
+    printSketch() {
+        var imgData = this.drawer.printSketch();
+        /*var aLink = document.createElement('a');
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent("click");
+        aLink.download = 'image.png';
+        aLink.href = imgData;
+        aLink.dispatchEvent(evt);*/
+    }
+
 }
