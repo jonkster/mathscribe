@@ -1,6 +1,7 @@
 import { Component, ViewChildren } from '@angular/core';
 import {NgGrid, NgGridItem} from 'angular2-grid';
 
+import {FILE_UPLOAD_DIRECTIVES, FileUploader} from 'ng2-file-upload/ng2-file-upload';
 import {ThreeDirective} from './three.directive';
 import {KeyService} from './key.service';
 
@@ -9,11 +10,16 @@ import { JkOperatorButtonComponent } from './jkoperator.component';
 @Component({
   selector: '[mySketch]',
   templateUrl: 'app/sketch.component.html',
-  directives: [  NgGrid, NgGridItem, ThreeDirective, JkOperatorButtonComponent ],
+  directives: [  NgGrid, NgGridItem, ThreeDirective, JkOperatorButtonComponent, FILE_UPLOAD_DIRECTIVES ],
   providers: [ KeyService ],
   styles: [`
       .status-indicator {
         padding: 0.5em;
+        border: 1px solid black;
+      }
+      .status-image {
+        width: 200px;
+        height: 200px
         border: 1px solid black;
       }
       `]
@@ -22,20 +28,10 @@ export class SketchComponent {
     @ViewChildren(ThreeDirective) threeDirective;
 
     pencilColour = '#ff0000';
+    imgData = '';
     drawer;
 
     constructor(private keyService: KeyService) { }
-
-    ngAfterViewInit() {
-        this.drawer = this.threeDirective.first;
-        this.changeColour(4);
-        console.log(this);
-    }
-
-    keyInput(ev) {
-        var key = this.keyService.keyInput(ev);
-        this.drawer.keyInput(key);
-    }
 
     changeColour(v) {
         var pc = this.drawer.palete[v];
@@ -43,14 +39,34 @@ export class SketchComponent {
         this.pencilColour = '#' + pc.toString(16);
     }
 
-    printSketch() {
-        var imgData = this.drawer.printSketch();
-        /*var aLink = document.createElement('a');
+    handleFileUpload(ev) {
+        console.log(ev);
+        alert('YES');
+    }
+
+
+    keyInput(ev) {
+        var key = this.keyService.keyInput(ev);
+        this.drawer.keyInput(key);
+    }
+
+    ngAfterViewInit() {
+        this.drawer = this.threeDirective.first;
+        this.changeColour(4);
+        console.log(this);
+    }
+
+
+    printSketch(ev) {
+        console.log(ev);
+        this.imgData = this.drawer.printSketch();
         var evt = document.createEvent("HTMLEvents");
-        evt.initEvent("click");
-        aLink.download = 'image.png';
-        aLink.href = imgData;
-        aLink.dispatchEvent(evt);*/
+        evt.initEvent("click", true, false);
+
+        var aLink = document.createElement('a');
+        aLink.setAttribute('download', 'image.png');
+        aLink.href = this.imgData;
+        aLink.dispatchEvent(evt);
     }
 
 }

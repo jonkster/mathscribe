@@ -1,10 +1,11 @@
-<div class="grid" [ngGrid]="{'max_cols': 2, 'max_rows': 1, 'col_width': 800, 'margins': [5, 5]}" >
-    <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" (window:keydown)="keyInput($event)" myThreeD ></div>
+<div mySketch class="grid" [ngGrid]="{'max_cols': 2, 'max_rows': 1, 'col_width': 800, 'margins': [5, 5]}" >
+    <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" (printPushed)="printSketch($event)" (window:keydown)="keyInput($event)" myThreeD ></div>
 
     <div class="grid-item" [ngGridItem]="{'col': 2, 'row': 1, 'sizex': 1, 'sizey': 1}">
         <div>
-            <button id="download-link" (click)="printSketch()">Download Sketch</button>
+            <button id="download-link" (click)="printSketch($event)">Download Sketch</button>
         </div>
+        <!--<input type="file" ng2FileSelect [uploader]="uploader" />-->
         <pre>
 
 J : [J]oin (joins green dot to red dot)
@@ -19,15 +20,18 @@ C: [C]ircle
 
 X: Blob
 D: [D]rag
+
+W: start [W]riting text (enter to stop)
+
 E: [E]rase Everything
 H: return to [H]ome position
 L: return to [L]ast position
+U (or backspace): [U]ndo last action
+R: Add/Remove [R]ubber (press space to make rubber rub out)
 
-P: [P]rint Sketch
 
-0: rub out colour
 1: dark colour
-3: medium colour
+5: medium colour
 7: light colour
         </pre>
         <div>
@@ -36,9 +40,12 @@ P: [P]rint Sketch
         <div>
             <jk-operator-button [operator]="'colour Dark'" (notify)="changeColour(1)" [allowHotkeys]="false"></jk-operator-button>
             <jk-operator-button [operator]="'colour Medium'" (notify)="changeColour(5)" [allowHotkeys]="false"></jk-operator-button>
-            <jk-operator-button [operator]="'colour Light'" (notify)="changeColour(8)" [allowHotkeys]="false"></jk-operator-button>
+            <jk-operator-button [operator]="'colour Light'" (notify)="changeColour(7)" [allowHotkeys]="false"></jk-operator-button>
             <jk-operator-button [operator]="'Rub Out'" (notify)="changeColour(0)" [allowHotkeys]="false"></jk-operator-button>
         </div>
+        <div>
+            <img class="status-image" [src]="imgData"/>
+        <div>
 </div>
 
 
