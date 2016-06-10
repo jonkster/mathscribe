@@ -25,13 +25,16 @@ export class ThreeDirective {
 
     stepSize = 10;
     dragging = false;
+    sliding = false;
     bending = false;
     filling = false;
     circle = false;
     rubbing = false;
     writing = false;
-    grabbing = false;
+    tracing = false;
     writingX = 0;
+    depth = 0;
+    maxDisplacement = 2000;
 
     startMarker = undefined;
     midMarker = undefined;
@@ -77,6 +80,7 @@ export class ThreeDirective {
             var circle = new THREE.Mesh(geometry, material);
             circle.position.x = x;
             circle.position.y = y;
+            circle.position.z = this.depth;
             this.lines.push(circle);
             this.scene.add(circle);
         }
@@ -116,6 +120,8 @@ export class ThreeDirective {
             rubber.add(border);
             rubber.position.x = this.cursor.position.x;
             rubber.position.y = this.cursor.position.y;
+            rubber.position.z = this.depth;
+            this.depth += 5;
             this.scene.add(rubber);
             return rubber;
         }
@@ -222,6 +228,7 @@ export class ThreeDirective {
                 gapSize: 3
             });
             this.ghostLine = new THREE.Line(g, m);
+            this.ghostLine.position.z = this.depth;
             this.scene.add(this.ghostLine);
         }
 
@@ -248,6 +255,7 @@ export class ThreeDirective {
             this.midMarker.position.y = 0;
             this.circle = false;
             this.bending = false;
+            this.slideObject(0, 0, this.camera);
         }
 
         init(el) {
@@ -273,7 +281,7 @@ export class ThreeDirective {
             this.scene.add( this.midMarker );
 
             // add grid
-            this.grid = new THREE.GridHelper(800, 40, 0xa0ffa0, 0xa0ffa0);
+            this.grid = new THREE.GridHelper(2000, 50, 0x30ff30, 0xa0ffa0);
             this.grid.rotation.x = Math.PI/2;
             this.grid.position.set(0,0,0);
             this.scene.add(this.grid);
@@ -286,6 +294,37 @@ export class ThreeDirective {
 
             this.composer = this.addBlurEffect();
 
+        }
+
+        keepCursorInView() {
+            if (this.sliding) {
+                return;
+            }
+            var fov = this.camera.fov * (Math.PI/180);
+            var visWidth = 1.2 * this.camera.position.z * Math.sin(fov/2);
+            var rightMost = visWidth + this.camera.position.x;
+            var leftMost = this.camera.position.x - visWidth;
+            var topMost = visWidth + this.camera.position.y;
+            var botMost = this.camera.position.y - visWidth;
+            var wasOff = false;
+            if (this.cursor.position.x > rightMost) {
+                this.slideObject(rightMost + 20, this.cursor.position.y, this.camera);
+                wasOff = true;
+            } else if (this.cursor.position.x < leftMost) {
+                this.slideObject(leftMost - 20, this.cursor.position.y, this.camera);
+                wasOff = true;
+            } else if (this.cursor.position.y + 20 > topMost) {
+                this.slideObject(this.cursor.position.x, topMost, this.camera);
+                wasOff = true;
+            } else if (this.cursor.position.y - 20 < botMost) {
+                this.slideObject(this.cursor.position.x, botMost, this.camera);
+                wasOff = true;
+            }
+            if (false && wasOff) {
+                if (this.camera.position.z < 2000) {
+                    this.camera.position.z += 20;
+                }
+            }
         }
 
         keyInput(key) {
@@ -307,11 +346,11 @@ export class ThreeDirective {
                             return;
                         } else if (key.lower.length > 1) {
                             if (key.lower == 'up arrow') {
-                                if (this.cursor.position.y < 700) {
+                                if (this.cursor.position.y < this.maxDisplacement) {
                                     this.cursor.position.y += this.stepSize;
                                 }
                             } else if (key.lower == 'down arrow') {
-                                if (this.cursor.position.y > -700) {
+                                if (this.cursor.position.y > -this.maxDisplacement) {
                                     this.cursor.position.y -= this.stepSize;
                                 }
                             }
@@ -327,6 +366,7 @@ export class ThreeDirective {
                         });
                         text.position.copy(this.cursor.position);
                         text.position.x += 10 + this.writingX++ * 20;
+                        text.position.z = this.depth;
                         this.scene.add(text)
                         this.lines.push(text);
                         return;
@@ -359,7 +399,7 @@ export class ThreeDirective {
                 this.clearAll();
             }
             else if (key.lower == 'f') {
-                this.stepSize = 40;
+                this.stepSize = 50;
             }
             else if (key.lower == 's') {
                 this.stepSize = 10;
@@ -371,25 +411,25 @@ export class ThreeDirective {
             }
             else if (key.lower == 'right arrow') {
                 this.writing = false;
-                if (activeMark.position.x < 700) {
+                if (activeMark.position.x < this.maxDisplacement) {
                     activeMark.position.x += this.stepSize;
                 }
             }
             else if (key.lower == 'left arrow') {
                 this.writing = false;
-                if (activeMark.position.x > -700) {
+                if (activeMark.position.x > -this.maxDisplacement) {
                     activeMark.position.x -= this.stepSize;
                 }
             }
             else if (key.lower == 'up arrow') {
                 this.writing = false;
-                if (activeMark.position.y < 700) {
+                if (activeMark.position.y < this.maxDisplacement) {
                     activeMark.position.y += this.stepSize;
                 }
             }
             else if (key.lower == 'down arrow') {
                 this.writing = false;
-                if (activeMark.position.y > -700) {
+                if (activeMark.position.y > -this.maxDisplacement) {
                     activeMark.position.y -= this.stepSize;
                 }
             }
@@ -440,11 +480,12 @@ export class ThreeDirective {
                 this.circle = false;
             }
             else if (key.lower == 't') {
-                if (this.background == undefined) {
+                this.tracing = ! this.tracing;
+                // if no background, load the default one
+                if (this.background === undefined) {
                     this.trace('background.png');
                 } else {
-                    this.scene.remove(this.background);
-                    this.background = undefined;
+                    this.background.visible = this.tracing;
                 }
             }
             else if ((key.lower == 'u') || (key.lower == 'backspace')) {
@@ -456,6 +497,16 @@ export class ThreeDirective {
             else if (key.lower == 'h') {
                 this.lastPos = this.startMarker.position.clone();
                 this.home();
+            }
+            else if (key.lower == 'o') {
+                if (this.camera.position.z < 2000) {
+                    this.camera.position.z += 10;
+                }
+            }
+            else if (key.lower == 'i') {
+                if (this.camera.position.z > 200) {
+                    this.camera.position.z -= 10;
+                }
             }
             else if (key.lower == 'r') {
                 this.rubbing = ! this.rubbing;
@@ -510,7 +561,12 @@ export class ThreeDirective {
             } else {
                 this.cursor.material.color.setHex( this.cursorColour );
             }
+            this.keepCursorInView();
 
+        }
+
+        loadImageUrl(url) {
+            this.trace(url);
         }
 
         makeGhostReal() {
@@ -520,6 +576,7 @@ export class ThreeDirective {
                 linewidth: this.currentLineWidth
             });
             var newLine = new THREE.Line(g, m);
+            newLine.position.z = this.depth;
             this.scene.add(newLine);
             this.lines.push(newLine);
 
@@ -552,15 +609,41 @@ export class ThreeDirective {
                 this.grid.visible = true;
         }
 
+        slideObject(x, y, object) {
+            this.sliding = true;
+            var dx = object.position.x - x;
+            var dy = object.position.y - y;
+            
+            object.position.x -= dx/10;
+            object.position.y -= dy/10;
+            var directive = this;
+            if ((Math.abs(dx) > 20) ||  (Math.abs(dy) > 20)) {
+                requestAnimationFrame(function() {
+                    directive.slideObject(x, y, object);
+                });
+            }
+            else
+            {
+                this.sliding = false;
+                object.position.x = x;
+                object.position.y = y;
+                this.keepCursorInView();
+            }
+        }
+
         trace(imgName) {
             var obj = this;
             var loader = new THREE.TextureLoader();
             loader.load(imgName, function ( texture ) {
                 var geometry = new THREE.PlaneGeometry(1024, 1024);
                 var material = new THREE.MeshBasicMaterial({map: texture});
+                if (obj.background !== undefined) {
+                    obj.scene.remove(obj.background);
+                }
                 obj.background = new THREE.Mesh(geometry, material);
                 obj.background.position.z = -2;
                 obj.scene.add(obj.background);
+                obj.background.visible = obj.tracing;
             });
         }
 

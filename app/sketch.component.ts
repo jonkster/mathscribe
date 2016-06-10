@@ -41,7 +41,16 @@ export class SketchComponent {
 
     handleFileUpload(ev) {
         console.log(ev);
-        alert('YES');
+        var reader = new FileReader();
+        var obj = this;
+        reader.onload = function(readEv) {
+            console.log(readEv, this);
+            var data = this.result;
+            obj.drawer.tracing = true;
+            obj.drawer.loadImageUrl(data);
+        };
+        var file = ev.target.files[0];
+        reader.readAsDataURL(file);   
     }
 
 
