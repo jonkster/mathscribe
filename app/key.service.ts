@@ -116,4 +116,15 @@ export class KeyService {
         }
     }
 
+    makeKey(ch) {
+        return {
+            'lower': ch,
+            'upper': ch.toUpperCase(),
+            'shiftKey': false,
+            'altKey': false,
+            'ctrlKey': false,
+            'metaKey': false,
+        }
+    }
+
 }

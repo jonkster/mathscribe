@@ -22,6 +22,11 @@ import { JkOperatorButtonComponent } from './jkoperator.component';
         height: 200px
         border: 1px solid black;
       }
+      .button-table {
+        table-layout: fixed;
+        width: 500px;
+        font-size: smaller;
+      }
       `]
 })
 export class SketchComponent {
@@ -37,6 +42,11 @@ export class SketchComponent {
         var pc = this.drawer.palete[v];
         this.drawer.pencilColour =  pc;
         this.pencilColour = '#' + pc.toString(16);
+    }
+
+    sendDrawerKey(ch) {
+        var key = this.keyService.makeKey(ch);
+        this.drawer.keyInput(key);
     }
 
     handleFileUpload(ev) {
