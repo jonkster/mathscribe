@@ -35,6 +35,8 @@ export class ThreeDirective {
     writingX = 0;
     depth = 0;
     maxDisplacement = 2000;
+    startPosX = -180;
+    startPosY = 0;
 
     startMarker = undefined;
     midMarker = undefined;
@@ -253,15 +255,15 @@ export class ThreeDirective {
         }
 
         home() {
-            this.cursor.position.x = 0;
-            this.cursor.position.y = 0;
-            this.startMarker.position.x = 0;
-            this.startMarker.position.y = 0;
-            this.midMarker.position.x = 0;
-            this.midMarker.position.y = 0;
+            this.cursor.position.x = this.startPosX;
+            this.cursor.position.y = this.startPosY;
+            this.startMarker.position.x = this.startPosX;
+            this.startMarker.position.y = this.startPosY;
+            this.midMarker.position.x = this.startPosX;
+            this.midMarker.position.y = this.startPosY;
             this.circle = false;
             this.bending = false;
-            this.slideObject(0, 0, this.camera);
+            this.slideObject(this.startPosX, this.startPosY, this.camera);
         }
 
         init(el) {
@@ -299,6 +301,7 @@ export class ThreeDirective {
             el.nativeElement.appendChild( this.renderer.domElement );
 
             this.composer = this.addBlurEffect();
+            this.home();
 
         }
 
