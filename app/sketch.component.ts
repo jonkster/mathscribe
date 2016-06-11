@@ -50,11 +50,9 @@ export class SketchComponent {
     }
 
     handleFileUpload(ev) {
-        console.log(ev);
         var reader = new FileReader();
         var obj = this;
         reader.onload = function(readEv) {
-            console.log(readEv, this);
             var data = this.result;
             obj.drawer.tracing = true;
             obj.drawer.loadImageUrl(data);
@@ -72,12 +70,10 @@ export class SketchComponent {
     ngAfterViewInit() {
         this.drawer = this.threeDirective.first;
         this.changeColour(4);
-        console.log(this);
     }
 
 
     printSketch(ev) {
-        console.log(ev);
         this.imgData = this.drawer.printSketch();
         var evt = document.createEvent("HTMLEvents");
         evt.initEvent("click", true, false);

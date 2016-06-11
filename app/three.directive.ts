@@ -100,30 +100,31 @@ export class ThreeDirective {
         }
 
         addRubber() {
-            var material = new THREE.MeshBasicMaterial( { color: this.clearColour, wireframe: false } );
-            var geometry = new THREE.CircleGeometry(8 * this.currentLineWidth, 10);
-            var rubber = new THREE.Mesh(geometry, material);
+                if (this.rubber == undefined) {
+                        var material = new THREE.MeshBasicMaterial( { color: this.clearColour, wireframe: false } );
+                        var geometry = new THREE.CircleGeometry(8 * this.currentLineWidth, 10);
+                        this.rubber = new THREE.Mesh(geometry, material);
 
-            var borderCurve = new THREE.EllipseCurve( 
-                0,0,
-                8 * this.currentLineWidth,             
-                8 * this.currentLineWidth,             
-                0, Math.PI * 2,
-                false,
-                0 
-            ) ;
-            var path = new THREE.Path(borderCurve.getPoints(20));
-            var bgeometry = path.createPointsGeometry(20);
-            bgeometry.computeLineDistances();
-            var bmaterial = new THREE.MeshBasicMaterial( { color: this.pencilColour, wireframe: true } );
-            var border = new THREE.Mesh(bgeometry, bmaterial);
-            rubber.add(border);
-            rubber.position.x = this.cursor.position.x;
-            rubber.position.y = this.cursor.position.y;
-            rubber.position.z = this.depth;
-            this.depth += 5;
-            this.scene.add(rubber);
-            return rubber;
+                        var borderCurve = new THREE.EllipseCurve( 
+                                        0,0,
+                                        8 * this.currentLineWidth,             
+                                        8 * this.currentLineWidth,             
+                                        0, Math.PI * 2,
+                                        false,
+                                        0 
+                                        ) ;
+                        var path = new THREE.Path(borderCurve.getPoints(20));
+                        var bgeometry = path.createPointsGeometry(20);
+                        //bgeometry.computeLineDistances();
+                        var bmaterial = new THREE.LineBasicMaterial( { color: this.draftColour } );
+                        var border = new THREE.Line(bgeometry, bmaterial);
+                        this.rubber.add(border);
+                        this.scene.add(this.rubber);
+                }
+                this.rubber.position.x = this.cursor.position.x;
+                this.rubber.position.y = this.cursor.position.y;
+                this.rubber.position.z = this.depth+15;
+                this.rubber.visible = true;
         }
 
         anim() {
@@ -232,6 +233,11 @@ export class ThreeDirective {
             this.scene.add(this.ghostLine);
         }
 
+        dropRubber() {
+                this.rubber.visible = false;
+                this.depth += 5;
+                this.rubbing = false;
+        }
 
         findMidPoint(p0, p1) {
             var x = p0.x + (p1.x - p0.x) / 2;
@@ -458,18 +464,23 @@ export class ThreeDirective {
                 this.moveStartToCursor();
                 if (this.rubbing) {
                     var clearSpot = this.rubber.clone();
+                    clearSpot.children[0].visible = false;
                     this.scene.add(clearSpot);
                     this.lines.push(clearSpot);
                 }
             }
             else if (key.lower == 'j') {
-                this.lastPos = this.startMarker.position.clone();
-                this.bending = false;
-                this.circle = false;
-                this.dragging = false;
-                this.makeGhostReal();
-                this.moveStartToCursor();
-                this.scene.remove(this.curvedGhost);
+                if (this.rubbing) {
+                    this.dropRubber();
+                } else {
+                        this.lastPos = this.startMarker.position.clone();
+                        this.bending = false;
+                        this.circle = false;
+                        this.dragging = false;
+                        this.makeGhostReal();
+                        this.moveStartToCursor();
+                        this.scene.remove(this.curvedGhost);
+                }
             }
             else if (key.lower == 'c') {
                 this.bending = true;
@@ -516,9 +527,9 @@ export class ThreeDirective {
                     this.circle = false;
                     this.dragging = false;
                     this.writing = false;
-                    this.rubber = this.addRubber();
+                    this.addRubber();
                 } else {
-                    this.scene.remove(this.rubber);
+                    this.dropRubber();
                 }
             }
             else if (key.lower == 'w') {
@@ -557,7 +568,9 @@ export class ThreeDirective {
                 this.cursor.material.color.setHex( this.clearColour );
             } else if (this.rubbing) {
                 this.cursor.material.color.setHex( this.draftColour );
-                this.rubber.position.copy(this.cursor.position);
+                this.rubber.position.x = this.cursor.position.x;
+                this.rubber.position.y = this.cursor.position.y;
+                this.rubber.position.z = this.depth + 5;
             } else {
                 this.cursor.material.color.setHex( this.cursorColour );
             }
