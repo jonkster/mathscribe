@@ -37,6 +37,8 @@ export class ThreeDirective {
     maxDisplacement = 2000;
     startPosX = -180;
     startPosY = 0;
+    maxOutPos = 3000;
+    minInPos = 100;
 
     startMarker = undefined;
     midMarker = undefined;
@@ -513,12 +515,12 @@ export class ThreeDirective {
                 this.home();
             }
             else if (key.lower == 'o') {
-                if (this.camera.position.z < 2000) {
+                if (this.camera.position.z < this.maxOutPos) {
                     this.camera.position.z += 10;
                 }
             }
             else if (key.lower == 'i') {
-                if (this.camera.position.z > 200) {
+                if (this.camera.position.z > this.minInPos) {
                     this.camera.position.z -= 10;
                 }
             }
