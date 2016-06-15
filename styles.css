@@ -4,7 +4,10 @@ h1 {
   font-size: 250%;
 }
 body {
+    border: 1px solid red;
   margin: 2em;
+  width: 1024px;
+  height: 600px;
 }
 
  /*

@@ -1,11 +1,17 @@
-<div mySketch class="grid" [ngGrid]="{'max_cols': 2, 'max_rows': 1, 'col_width': 800, 'margins': [5, 5]}" >
-    <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" (printPushed)="printSketch($event)" (window:keydown)="keyInput($event)" myThreeD ></div>
+<div mySketch class="grid" [ngGrid]="{'max_cols': 2, 'max_rows': 1, 'col_width': 600, 'margins': [5, 5], 'draggable': false, 'resizeable': false}" >
+    <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" 
+                (printPushed)="printSketch($event)" 
+                (mousedown)="drawingClick($event)"
+                (mouseup)="drawingClick($event)"
+                (touchend)="drawingClick($event)"
+                (window:keydown)="keyInput($event)" myThreeD>
+    </div>
 
-    <div class="grid-item" [ngGridItem]="{'col': 2, 'row': 1, 'sizex': 1, 'sizey': 1}">
+        <div class="grid-item" [ngGridItem]="{'col': 2, 'row': 1, 'sizex': 1, 'sizey': 1}">
         
         <div>
             <table class="button-table">
-                <tr>
+                <!--<tr>
                     <td>
                         [P] Save Sketch
                     </td>
@@ -14,15 +20,15 @@
                         Background image to trace
                     </td>
                     <td><input type="file" (change)="handleFileUpload($event)" accept="image/*" /></td>
-                </tr>
+                    </tr>-->
                 <tr>
                     <td>[J]oin (joins green dot to red dot)</td>
                     <td><jk-operator-button [operator]="'Join'" (notify)="sendDrawerKey('j')"></jk-operator-button></td>
                     <td>
-                         [D]rag
+                         Blob
                     </td>
                     <td>
-                        <jk-operator-button [operator]="'Drag'" (notify)="sendDrawerKey('d')"></jk-operator-button>
+                        <jk-operator-button [operator]="'Blob'" (notify)="sendDrawerKey('x')"></jk-operator-button>
                     </td>
                 </tr>
                 <tr>
@@ -35,18 +41,20 @@
                         <jk-operator-button [operator]="'Erase'" (notify)="sendDrawerKey('e')"></jk-operator-button>
                     </td>
                 </tr>
-                <tr>
-                    <td><jk-operator-button [operator]="'Left'" (notify)="sendDrawerKey('left arrow')"></jk-operator-button></td>
-                    <td><jk-operator-button [operator]="'Up'" (notify)="sendDrawerKey('up arrow')"></jk-operator-button></td>
-                    <td><jk-operator-button [operator]="'Down'" (notify)="sendDrawerKey('down arrow')"></jk-operator-button></td>
-                    <td><jk-operator-button [operator]="'Right'" (notify)="sendDrawerKey('right arrow')"></jk-operator-button></td>
-                </tr>
-                <tr>
-                    <td> [F]ast</td>
-                    <td><jk-operator-button [operator]="'Fast'" (notify)="sendDrawerKey('f')"></jk-operator-button></td>
-                    <td> [S]low</td>
-                    <td><jk-operator-button [operator]="'Slow'" (notify)="sendDrawerKey('s')"></jk-operator-button></td>
-                </tr>
+                <!--<tr>
+                    <td>
+                        <jk-operator-button [operator]="'Left'" (notify)="sendDrawerKey('left arrow')"></jk-operator-button>
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'Up'" (notify)="sendDrawerKey('up arrow')"></jk-operator-button>
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'Down'" (notify)="sendDrawerKey('down arrow')"></jk-operator-button>
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'Right'" (notify)="sendDrawerKey('right arrow')"></jk-operator-button>
+                    </td>
+                    </tr>-->
                 <tr>
                     <td>
                          [B]end
@@ -63,39 +71,13 @@
                 </tr>
                 <tr>
                     <td>
-                         Blob
+                         [D]rag
                     </td>
                     <td>
-                        <jk-operator-button [operator]="'Blob'" (notify)="sendDrawerKey('x')"></jk-operator-button>
+                        <jk-operator-button [operator]="'Drag'" (notify)="sendDrawerKey('d')"></jk-operator-button>
                     </td>
                     <td></td>
                     <td></td>
-                </tr>
-                <tr>
-                </tr>
-                <tr>
-                    <td>
-                         start [W]riting text (enter to stop)
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Write'" (notify)="sendDrawerKey('w')"></jk-operator-button>
-                    </td>
-                    <td> Show/Hide [T]race image</td>
-                    <td><jk-operator-button [operator]="'Trace'" (notify)="sendDrawerKey('t')"></jk-operator-button></td>
-                </tr>
-                <tr>
-                    <td>
-                         Zoom [O]ut
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Out'" (notify)="sendDrawerKey('o')"></jk-operator-button>
-                    </td>
-                    <td>
-                         Zoom [I]n
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'In'" (notify)="sendDrawerKey('i')"></jk-operator-button>
-                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -123,6 +105,45 @@
                     </td>
                     <td>
                         <jk-operator-button [operator]="'Rubber'" (notify)="sendDrawerKey('r')"></jk-operator-button>
+                    </td>
+                </tr>
+                <!--<tr>
+                    <td>
+                         start [W]riting text (enter to stop)
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'Write'" (notify)="sendDrawerKey('w')"></jk-operator-button>
+                        <input type="text" (textInput)="keyInput($event)" id="text-input"/>
+                    </td>
+                    <td> Show/Hide [T]race image</td>
+                    <td><jk-operator-button [operator]="'Trace'" (notify)="sendDrawerKey('t')"></jk-operator-button></td>
+                    </tr>-->
+                <tr>
+                    <td>
+                         Zoom [O]ut
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'Out'" (notify)="sendDrawerKey('o')"></jk-operator-button>
+                    </td>
+                    <td>
+                         Zoom [I]n
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'In'" (notify)="sendDrawerKey('i')"></jk-operator-button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        [F]ast
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'Fast'" (notify)="sendDrawerKey('f')"></jk-operator-button>
+                    </td>
+                    <td>
+                        [S]low
+                    </td>
+                    <td>
+                        <jk-operator-button [operator]="'Slow'" (notify)="sendDrawerKey('s')"></jk-operator-button>
                     </td>
                 </tr>
                 <tr>

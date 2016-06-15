@@ -105,10 +105,22 @@ export class KeyService {
     }
 
     keyInput(ev) {
-        var key = this.keyCodeTrans[ev.which];
+        var key = { };
+        var keyCode = ev.which;
+        if (keyCode == 0 || keyCode == 229) {
+            // android catch
+            if (ev.data != undefined) {
+                key['lower'] = ev.data.toLowerCase();
+                key['upper'] = ev.data.toUpperCase();
+            } else {
+                return;
+            }
+        } else {
+            key = this.keyCodeTrans[ev.which];
+         }
         return {
-            'lower': key.lower,
-            'upper': key.upper,
+            'lower': key['lower'],
+            'upper': key['upper'],
             'shiftKey': ev.shiftKey,
             'altKey': ev.altKey,
             'ctrlKey': ev.ctrlKey,

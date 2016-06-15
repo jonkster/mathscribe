@@ -33,8 +33,10 @@ export class SketchComponent {
     @ViewChildren(ThreeDirective) threeDirective;
 
     pencilColour = '#ff0000';
+    mousedownTimer = undefined;
     imgData = '';
     drawer;
+    overflow = 0;
 
     constructor(private keyService: KeyService) { }
 
@@ -44,17 +46,63 @@ export class SketchComponent {
         this.pencilColour = '#' + pc.toString(16);
     }
 
-    sendDrawerKey(ch) {
-        var key = this.keyService.makeKey(ch);
-        this.drawer.keyInput(key);
+    drawingClick(ev) {
+
+
+        if (ev.type === 'mousedown') {
+            var x0 = this.drawer.cursor.position.x;
+            var y0 = this.drawer.cursor.position.y;
+            var v = this.drawer.getScreenCoords(x0, y0, 0);
+            var x1 = ev.offsetX;
+            var y1 = ev.offsetY;
+            var theta = (Math.atan2(y1-v.y, x1-v.x)) * 180/Math.PI;
+            var dist = Math.sqrt(Math.pow(x1-v.x, 2) + Math.pow(y1-v.y, 2));
+
+            var key = undefined;
+            if (dist < 30) {
+                key = this.keyService.makeKey('j');
+            } else if (theta > 0) {
+                if (theta < 45) {
+                    key = this.keyService.makeKey('right arrow');
+                } else if (theta < 135) {
+                    key = this.keyService.makeKey('down arrow');
+                } else {
+                    key = this.keyService.makeKey('left arrow');
+                }
+            } else {
+                if (theta > -45) {
+                    key = this.keyService.makeKey('right arrow');
+                } else if (theta > -135) {
+                    key = this.keyService.makeKey('up arrow');
+                } else {
+                    key = this.keyService.makeKey('left arrow');
+                }
+            }
+            if (key !== undefined) {
+                var obj = this;
+                if (this.mousedownTimer === undefined) {
+                    this.overflow = 0;
+                    this.mousedownTimer = setInterval(function() { obj.drawingClick(ev); }, 400);
+                }
+                if (this.overflow++ > 100) {
+                    clearInterval(this.mousedownTimer);
+                    this.mousedownTimer = undefined;
+                    return;
+                }
+                this.drawer.keyInput(key);
+            }
+        } else {
+            if (this.mousedownTimer !== undefined) {
+                clearInterval(this.mousedownTimer);
+                this.mousedownTimer = undefined;
+            }
+        }
     }
 
     handleFileUpload(ev) {
-        console.log(ev);
         var reader = new FileReader();
         var obj = this;
         reader.onload = function(readEv) {
-            console.log(readEv, this);
             var data = this.result;
             obj.drawer.tracing = true;
             obj.drawer.loadImageUrl(data);
@@ -72,12 +120,10 @@ export class SketchComponent {
     ngAfterViewInit() {
         this.drawer = this.threeDirective.first;
         this.changeColour(4);
-        console.log(this);
     }
 
 
     printSketch(ev) {
-        console.log(ev);
         this.imgData = this.drawer.printSketch();
         var evt = document.createEvent("HTMLEvents");
         evt.initEvent("click", true, false);
@@ -87,5 +133,10 @@ export class SketchComponent {
         aLink.href = this.imgData;
         aLink.dispatchEvent(evt);
     }
+    sendDrawerKey(ch) {
+        var key = this.keyService.makeKey(ch);
+        this.drawer.keyInput(key);
+    }
+
 
 }

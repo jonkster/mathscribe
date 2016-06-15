@@ -15,9 +15,9 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   `,
   styles: [`
     .jk-operator-button {
-        margin: 0.5em;
+        margin: 0.8em;
         font-size: 1.2em;
-        padding: 0.2em 1em;
+        padding: 1em;
         float: left;
     }
     .jk-display-symbol {
@@ -43,6 +43,7 @@ export class JkOperatorButtonComponent {
     @Output() notify:EventEmitter<string> = new EventEmitter<string>();
 
     myOperator = undefined;
+    disabled = false;
 
     ngOnInit() {
         if (this.allowHotkeys) {

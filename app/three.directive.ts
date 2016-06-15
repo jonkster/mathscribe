@@ -35,6 +35,8 @@ export class ThreeDirective {
     writingX = 0;
     depth = 0;
     maxDisplacement = 2000;
+    sizeX = 600;
+    sizeY = 600;
 
     startMarker = undefined;
     midMarker = undefined;
@@ -66,6 +68,7 @@ export class ThreeDirective {
     startColour = 0x00ffff;
 
     currentLineWidth = 5;
+    zoomStep = 40;
     blurFactor = 0 // 0 = none, 10 = very blurred
 
         constructor(private el: ElementRef) {
@@ -131,8 +134,8 @@ export class ThreeDirective {
                 this.anim()
             });
 
-            this.cursor.rotation.x += 0.1 * this.stepSize/15;
-            this.cursor.rotation.y += 0.13 * this.stepSize/15;
+            this.cursor.rotation.x += 0.08 * this.stepSize/15;
+            this.cursor.rotation.y += 0.017 * this.stepSize/15;
 
             this.composer.render( this.scene, this.camera );
         }
@@ -239,6 +242,14 @@ export class ThreeDirective {
             return new THREE.Vector3(x, y, 0);
         }
 
+        getScreenCoords(x, y, z) {
+            var p = new THREE.Vector3(x, y, z);
+            var vector = p.project(this.camera);
+            vector.x = (vector.x + 1) / 2 * this.sizeX;
+            vector.y = -(vector.y - 1) / 2 * this.sizeY;
+            return vector;
+        }
+
         hideTools() {
                 this.cursor.visible = false;
                 this.startMarker.visible = false;
@@ -281,15 +292,19 @@ export class ThreeDirective {
             this.scene.add( this.midMarker );
 
             // add grid
-            this.grid = new THREE.GridHelper(2000, 50, 0x30ff30, 0xa0ffa0);
+            this.grid = new THREE.GridHelper(2000, 50, 0xa0ffa0, 0xd0ffd0);
+            this.grid.material.linewidth = 2;
+            this.grid.material.depthTest = false;
+            this.grid.frustumCulled = false;
             this.grid.rotation.x = Math.PI/2;
-            this.grid.position.set(0,0,0);
+            this.grid.position.set(0,0,-5);
+            this.grid.visible = true;
             this.scene.add(this.grid);
 
             this.renderer = new THREE.WebGLRenderer();
             this.renderer.preserveDrawingBuffer = true ;
             this.renderer.setClearColor(this.clearColour, 1);
-            this.renderer.setSize( 800, 800 );
+            this.renderer.setSize( this.sizeX, this.sizeY );
             el.nativeElement.appendChild( this.renderer.domElement );
 
             this.composer = this.addBlurEffect();
@@ -467,9 +482,16 @@ export class ThreeDirective {
                 this.bending = false;
                 this.circle = false;
                 this.dragging = false;
-                this.makeGhostReal();
-                this.moveStartToCursor();
-                this.scene.remove(this.curvedGhost);
+                if (this.rubbing) {
+                    var clearSpot = this.rubber.clone();
+                    this.scene.add(clearSpot);
+                    this.lines.push(clearSpot);
+                } else {
+                    this.makeGhostReal();
+                    this.moveStartToCursor();
+                    this.scene.remove(this.curvedGhost);
+                }
+
             }
             else if (key.lower == 'c') {
                 this.bending = true;
@@ -500,12 +522,12 @@ export class ThreeDirective {
             }
             else if (key.lower == 'o') {
                 if (this.camera.position.z < 2000) {
-                    this.camera.position.z += 10;
+                    this.camera.position.z += this.zoomStep;
                 }
             }
             else if (key.lower == 'i') {
                 if (this.camera.position.z > 200) {
-                    this.camera.position.z -= 10;
+                    this.camera.position.z -= this.zoomStep;
                 }
             }
             else if (key.lower == 'r') {
