@@ -37,6 +37,10 @@ export class ThreeDirective {
     maxDisplacement = 2000;
     sizeX = 600;
     sizeY = 600;
+    startPosX = -180;
+    startPosY = 0;
+    maxOutPos = 3000;
+    minInPos = 100;
 
     startMarker = undefined;
     midMarker = undefined;
@@ -103,30 +107,31 @@ export class ThreeDirective {
         }
 
         addRubber() {
-            var material = new THREE.MeshBasicMaterial( { color: this.clearColour, wireframe: false } );
-            var geometry = new THREE.CircleGeometry(8 * this.currentLineWidth, 10);
-            var rubber = new THREE.Mesh(geometry, material);
+                if (this.rubber == undefined) {
+                        var material = new THREE.MeshBasicMaterial( { color: this.clearColour, wireframe: false } );
+                        var geometry = new THREE.CircleGeometry(8 * this.currentLineWidth, 10);
+                        this.rubber = new THREE.Mesh(geometry, material);
 
-            var borderCurve = new THREE.EllipseCurve( 
-                0,0,
-                8 * this.currentLineWidth,             
-                8 * this.currentLineWidth,             
-                0, Math.PI * 2,
-                false,
-                0 
-            ) ;
-            var path = new THREE.Path(borderCurve.getPoints(20));
-            var bgeometry = path.createPointsGeometry(20);
-            bgeometry.computeLineDistances();
-            var bmaterial = new THREE.MeshBasicMaterial( { color: this.pencilColour, wireframe: true } );
-            var border = new THREE.Mesh(bgeometry, bmaterial);
-            rubber.add(border);
-            rubber.position.x = this.cursor.position.x;
-            rubber.position.y = this.cursor.position.y;
-            rubber.position.z = this.depth;
-            this.depth += 5;
-            this.scene.add(rubber);
-            return rubber;
+                        var borderCurve = new THREE.EllipseCurve( 
+                                        0,0,
+                                        8 * this.currentLineWidth,             
+                                        8 * this.currentLineWidth,             
+                                        0, Math.PI * 2,
+                                        false,
+                                        0 
+                                        ) ;
+                        var path = new THREE.Path(borderCurve.getPoints(20));
+                        var bgeometry = path.createPointsGeometry(20);
+                        //bgeometry.computeLineDistances();
+                        var bmaterial = new THREE.LineBasicMaterial( { color: this.draftColour } );
+                        var border = new THREE.Line(bgeometry, bmaterial);
+                        this.rubber.add(border);
+                        this.scene.add(this.rubber);
+                }
+                this.rubber.position.x = this.cursor.position.x;
+                this.rubber.position.y = this.cursor.position.y;
+                this.rubber.position.z = this.depth+15;
+                this.rubber.visible = true;
         }
 
         anim() {
@@ -235,6 +240,11 @@ export class ThreeDirective {
             this.scene.add(this.ghostLine);
         }
 
+        dropRubber() {
+                this.rubber.visible = false;
+                this.depth += 5;
+                this.rubbing = false;
+        }
 
         findMidPoint(p0, p1) {
             var x = p0.x + (p1.x - p0.x) / 2;
@@ -258,15 +268,15 @@ export class ThreeDirective {
         }
 
         home() {
-            this.cursor.position.x = 0;
-            this.cursor.position.y = 0;
-            this.startMarker.position.x = 0;
-            this.startMarker.position.y = 0;
-            this.midMarker.position.x = 0;
-            this.midMarker.position.y = 0;
+            this.cursor.position.x = this.startPosX;
+            this.cursor.position.y = this.startPosY;
+            this.startMarker.position.x = this.startPosX;
+            this.startMarker.position.y = this.startPosY;
+            this.midMarker.position.x = this.startPosX;
+            this.midMarker.position.y = this.startPosY;
             this.circle = false;
             this.bending = false;
-            this.slideObject(0, 0, this.camera);
+            this.slideObject(this.startPosX, this.startPosY, this.camera);
         }
 
         init(el) {
@@ -308,6 +318,7 @@ export class ThreeDirective {
             el.nativeElement.appendChild( this.renderer.domElement );
 
             this.composer = this.addBlurEffect();
+            this.home();
 
         }
 
@@ -473,6 +484,7 @@ export class ThreeDirective {
                 this.moveStartToCursor();
                 if (this.rubbing) {
                     var clearSpot = this.rubber.clone();
+                    clearSpot.children[0].visible = false;
                     this.scene.add(clearSpot);
                     this.lines.push(clearSpot);
                 }
@@ -521,12 +533,12 @@ export class ThreeDirective {
                 this.home();
             }
             else if (key.lower == 'o') {
-                if (this.camera.position.z < 2000) {
+                if (this.camera.position.z < this.maxOutPos) {
                     this.camera.position.z += this.zoomStep;
                 }
             }
             else if (key.lower == 'i') {
-                if (this.camera.position.z > 200) {
+                if (this.camera.position.z > this.minInPos) {
                     this.camera.position.z -= this.zoomStep;
                 }
             }
@@ -538,9 +550,9 @@ export class ThreeDirective {
                     this.circle = false;
                     this.dragging = false;
                     this.writing = false;
-                    this.rubber = this.addRubber();
+                    this.addRubber();
                 } else {
-                    this.scene.remove(this.rubber);
+                    this.dropRubber();
                 }
             }
             else if (key.lower == 'w') {
@@ -579,7 +591,9 @@ export class ThreeDirective {
                 this.cursor.material.color.setHex( this.clearColour );
             } else if (this.rubbing) {
                 this.cursor.material.color.setHex( this.draftColour );
-                this.rubber.position.copy(this.cursor.position);
+                this.rubber.position.x = this.cursor.position.x;
+                this.rubber.position.y = this.cursor.position.y;
+                this.rubber.position.z = this.depth + 5;
             } else {
                 this.cursor.material.color.setHex( this.cursorColour );
             }
