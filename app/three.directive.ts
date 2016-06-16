@@ -7,7 +7,7 @@ declare var THREE_Text: any;
     selector: '[myThreeD]'
 })
 export class ThreeDirective {
-    @Output() printPushed: EventEmitter<string> = new EventEmitter<string>();
+    @Output() messenger: EventEmitter<string> = new EventEmitter<string>();
 
     Text2D = THREE_Text.Text2D;
     SpriteText2D = THREE_Text.SpriteText2D;
@@ -23,7 +23,7 @@ export class ThreeDirective {
     background = undefined;
 
 
-    stepSize = 10;
+    stepSize = 50;
     dragging = false;
     sliding = false;
     bending = false;
@@ -36,7 +36,7 @@ export class ThreeDirective {
     depth = 0;
     maxDisplacement = 2000;
     sizeX = 600;
-    sizeY = 600;
+    sizeY = 500;
     startPosX = -180;
     startPosY = 0;
     maxOutPos = 3000;
@@ -50,6 +50,7 @@ export class ThreeDirective {
     lines = [];
     draggedLineSpline = [];
     ghostLine = undefined;
+    blobCount = 0;
 
     palete = [
         0xf7f7f7,
@@ -83,7 +84,7 @@ export class ThreeDirective {
 
         addBlob(x, y, draft, colour, big) {
             var material = new THREE.MeshBasicMaterial( { color: colour, wireframe: false } );
-            var geometry = new THREE.CircleGeometry(4 * this.currentLineWidth, 10);
+            var geometry = new THREE.CircleGeometry((this.blobCount+3) * this.currentLineWidth, 20);
             var circle = new THREE.Mesh(geometry, material);
             circle.position.x = x;
             circle.position.y = y;
@@ -122,7 +123,6 @@ export class ThreeDirective {
                                         ) ;
                         var path = new THREE.Path(borderCurve.getPoints(20));
                         var bgeometry = path.createPointsGeometry(20);
-                        //bgeometry.computeLineDistances();
                         var bmaterial = new THREE.LineBasicMaterial( { color: this.draftColour } );
                         var border = new THREE.Line(bgeometry, bmaterial);
                         this.rubber.add(border);
@@ -291,14 +291,14 @@ export class ThreeDirective {
             var material = new THREE.MeshBasicMaterial( { color: this.cursorColour, wireframe: true } );
             this.cursor = new THREE.Mesh( geometry, material );
             this.cursor.position.setZ(5);
-            var cursorDot = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.cursorColour);
+            var cursorDot = this.makeMarker(10, this.cursorColour);
             this.cursor.add(cursorDot);
             this.scene.add( this.cursor );
 
             // add 'helper' cursors
-            this.startMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.startColour);
+            this.startMarker = this.makeMarker(10, this.startColour);
             this.scene.add( this.startMarker );
-            this.midMarker = this.makeMarker(new THREE.Vector3(0, 0, 0), 10, this.midColour);
+            this.midMarker = this.makeMarker(10, this.midColour);
             this.scene.add( this.midMarker );
 
             // add grid
@@ -399,8 +399,11 @@ export class ThreeDirective {
                     }
                 } else {
                     this.writing = false;
+                    this.messenger.emit('enter pushed');
                 }
             }
+
+            var blobbed = false;
 
             if (this.lastPos === undefined) {
                 this.lastPos = this.startMarker.position.clone();
@@ -465,7 +468,9 @@ export class ThreeDirective {
                 this.circle = false;
                 this.dragging = false;
                 this.moveStartToCursor();
+                this.blobCount++;
                 this.addBlob(this.cursor.position.x, this.cursor.position.y, false, this.pencilColour, true);
+                blobbed = true;
             }
             else if (key.lower == 'd') {
                 this.bending = false;
@@ -495,7 +500,9 @@ export class ThreeDirective {
                 this.circle = false;
                 this.dragging = false;
                 if (this.rubbing) {
+                    this.moveStartToCursor();
                     var clearSpot = this.rubber.clone();
+                    clearSpot.children[0].visible = false;
                     this.scene.add(clearSpot);
                     this.lines.push(clearSpot);
                 } else {
@@ -564,7 +571,7 @@ export class ThreeDirective {
                 this.moveStartToCursor();
             }
             else if (key.lower == 'p') {
-                this.printPushed.emit('print requested');
+                this.messenger.emit('print requested');
             }
 
             if (! this.bending) {
@@ -585,6 +592,13 @@ export class ThreeDirective {
                 this.scene.add(l);
             }
 
+            if (this.bending) {
+                this.midMarker.children[0].visible = true;
+                this.midMarker.children[0].material.color.setHex( 0xff0000 );
+            } else {
+                this.midMarker.children[0].visible = false;
+            }
+
             if (this.dragging) {
                 this.cursor.material.color.setHex( this.pencilColour );
             } else if (this.writing) {
@@ -597,7 +611,13 @@ export class ThreeDirective {
             } else {
                 this.cursor.material.color.setHex( this.cursorColour );
             }
+
+            this.drawGhostLines();
             this.keepCursorInView();
+
+            if (! blobbed) {
+                this.blobCount = 0;
+            }
 
         }
 
@@ -618,10 +638,21 @@ export class ThreeDirective {
 
         }
 
-        makeMarker(p0, size, colour) {
+        makeMarker(size, colour) {
             var geometry = new THREE.SphereGeometry( size, size, 10 );
             var material = new THREE.MeshBasicMaterial( { color: colour, wireframe: true } );
-            return new THREE.Mesh( geometry, material );
+            var marker =  new THREE.Mesh( geometry, material );
+
+            // make ring to use when highlighting marker
+            var circleCurve = new THREE.EllipseCurve(0, 0, size*4, size*4, 0, Math.PI*2, false, 0) ;
+            var path = new THREE.Path(circleCurve.getPoints(10));
+            var hGeometry = path.createPointsGeometry(10);
+            var hMaterial = new THREE.LineBasicMaterial( { color: colour } );
+            var hMarker =  new THREE.Line( hGeometry, hMaterial );
+            hMarker.visible = false;
+            marker.add(hMarker);
+
+            return marker;
         }
 
 

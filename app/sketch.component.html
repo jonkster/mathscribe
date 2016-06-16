@@ -1,165 +1,68 @@
-<div mySketch class="grid" [ngGrid]="{'max_cols': 2, 'max_rows': 1, 'col_width': 600, 'margins': [5, 5], 'draggable': false, 'resizeable': false}" >
+<div mySketch class="grid" [ngGrid]="{'max_cols': 2, 'max_rows': 1, 'col_width': 600, 'margins': [5, 25], 'draggable': false, 'resizeable': false}" >
+    <input style="height:0em;width:0em" #writeInput type="text" (textInput)="keyInput($event)" id="text-input"/>
     <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" 
-                (printPushed)="printSketch($event)" 
+                (messenger)="handleMessage($event)" 
                 (mousedown)="drawingClick($event)"
                 (mouseup)="drawingClick($event)"
                 (touchend)="drawingClick($event)"
                 (window:keydown)="keyInput($event)" myThreeD>
+        <jk-operator-button class="left-top" [operator]="'Blob'" (notify)="sendDrawerKey('x')"></jk-operator-button>
+        <jk-operator-button class="right-top" [operator]="'Begin'" (notify)="sendDrawerKey(' ')"></jk-operator-button>
+
+        <jk-operator-button class="lower-left" [operator]="'Left'" (notify)="sendDrawerKey('left arrow')" [allowRepeat]="true"></jk-operator-button>
+        <jk-operator-button class="lower-mid" [operator]="'Up'" (notify)="sendDrawerKey('up arrow')" [allowRepeat]="true"></jk-operator-button>
+        <jk-operator-button class="lower-right" [operator]="'Right'" (notify)="sendDrawerKey('right arrow')" [allowRepeat]="true"></jk-operator-button>
+
+        <jk-operator-button class="left-bottom" [operator]="'Bend'" (notify)="sendDrawerKey('b')"></jk-operator-button>
+        <jk-operator-button class="mid-bottom" [operator]="'Down'" (notify)="sendDrawerKey('down arrow')" [allowRepeat]="true"></jk-operator-button>
+        <jk-operator-button class="right-bottom" [operator]="'Circle'" (notify)="sendDrawerKey('c')"></jk-operator-button>
     </div>
 
         <div class="grid-item" [ngGridItem]="{'col': 2, 'row': 1, 'sizex': 1, 'sizey': 1}">
         
         <div>
             <table class="button-table">
-                <!--<tr>
-                    <td>
-                        [P] Save Sketch
-                    </td>
-                    <td><jk-operator-button [operator]="'Save'" (notify)="sendDrawerKey('p')"></jk-operator-button></td>
-                    <td>
-                        Background image to trace
-                    </td>
-                    <td><input type="file" (change)="handleFileUpload($event)" accept="image/*" /></td>
-                    </tr>-->
                 <tr>
-                    <td>[J]oin (joins green dot to red dot)</td>
-                    <td><jk-operator-button [operator]="'Join'" (notify)="sendDrawerKey('j')"></jk-operator-button></td>
-                    <td>
-                         Blob
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Blob'" (notify)="sendDrawerKey('x')"></jk-operator-button>
-                    </td>
+                    <td> <jk-operator-button [operator]="'Home'" (notify)="sendDrawerKey('h')"></jk-operator-button> </td>
+                    <td> <jk-operator-button [operator]="'Last'" (notify)="sendDrawerKey('l')"></jk-operator-button> </td>
+                    <td [ngStyle]="{'background-color': pencilColour}">&nbsp;</td>
                 </tr>
                 <tr>
-                    <td> start again at red dot</td>
-                    <td><jk-operator-button [operator]="'reStart'" (notify)="sendDrawerKey(' ')"></jk-operator-button></td>
-                    <td>
-                         [E]rase Everything
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Erase'" (notify)="sendDrawerKey('e')"></jk-operator-button>
-                    </td>
-                </tr>
-                <!--<tr>
-                    <td>
-                        <jk-operator-button [operator]="'Left'" (notify)="sendDrawerKey('left arrow')"></jk-operator-button>
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Up'" (notify)="sendDrawerKey('up arrow')"></jk-operator-button>
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Down'" (notify)="sendDrawerKey('down arrow')"></jk-operator-button>
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Right'" (notify)="sendDrawerKey('right arrow')"></jk-operator-button>
-                    </td>
-                    </tr>-->
-                <tr>
-                    <td>
-                         [B]end
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Bend'" (notify)="sendDrawerKey('b')"></jk-operator-button>
-                    </td>
-                    <td>
-                         [C]ircle
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Circle'" (notify)="sendDrawerKey('c')"></jk-operator-button>
-                    </td>
+                    <td> <jk-operator-button [operator]="'Undo'" (notify)="sendDrawerKey('u')"></jk-operator-button> </td>
+                    <td> <jk-operator-button [operator]="'New'" (notify)="sendDrawerKey('e')"></jk-operator-button> </td>
+                    <td><jk-operator-button [operator]="'Dark'" (notify)="changeColour(1)" [allowHotkeys]="false"></jk-operator-button></td>
                 </tr>
                 <tr>
-                    <td>
-                         [D]rag
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Drag'" (notify)="sendDrawerKey('d')"></jk-operator-button>
-                    </td>
+                    <td> <jk-operator-button [operator]="'Rubber'" (notify)="sendDrawerKey('r')"></jk-operator-button> </td>
                     <td></td>
-                    <td></td>
+                    <td><jk-operator-button [operator]="'Medium'" (notify)="changeColour(5)" [allowHotkeys]="false"></jk-operator-button></td>
                 </tr>
                 <tr>
-                    <td>
-                         return to [H]ome position
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Home'" (notify)="sendDrawerKey('h')"></jk-operator-button>
-                    </td>
-                    <td>
-                         return to [L]ast position
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Last'" (notify)="sendDrawerKey('l')"></jk-operator-button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        [U]ndo last action
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Undo'" (notify)="sendDrawerKey('u')"></jk-operator-button>
-                    </td>
-                    <td>
-                        Add/Remove [R]ubber (press space to make rubber rub out)
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Rubber'" (notify)="sendDrawerKey('r')"></jk-operator-button>
-                    </td>
-                </tr>
-                <!--<tr>
-                    <td>
-                         start [W]riting text (enter to stop)
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Write'" (notify)="sendDrawerKey('w')"></jk-operator-button>
-                        <input type="text" (textInput)="keyInput($event)" id="text-input"/>
-                    </td>
-                    <td> Show/Hide [T]race image</td>
+                    <td> <jk-operator-button [operator]="'Write'" (notify)="sendDrawerKey('w')"></jk-operator-button> </td>
                     <td><jk-operator-button [operator]="'Trace'" (notify)="sendDrawerKey('t')"></jk-operator-button></td>
-                    </tr>-->
-                <tr>
-                    <td>
-                         Zoom [O]ut
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Out'" (notify)="sendDrawerKey('o')"></jk-operator-button>
-                    </td>
-                    <td>
-                         Zoom [I]n
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'In'" (notify)="sendDrawerKey('i')"></jk-operator-button>
-                    </td>
+                    <td><jk-operator-button [operator]="'Light'" (notify)="changeColour(7)" [allowHotkeys]="false"></jk-operator-button></td>
                 </tr>
                 <tr>
-                    <td>
-                        [F]ast
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Fast'" (notify)="sendDrawerKey('f')"></jk-operator-button>
-                    </td>
-                    <td>
-                        [S]low
-                    </td>
-                    <td>
-                        <jk-operator-button [operator]="'Slow'" (notify)="sendDrawerKey('s')"></jk-operator-button>
-                    </td>
+                    <td> <jk-operator-button [operator]="'Out'" (notify)="sendDrawerKey('o')" [allowRepeat]="true"></jk-operator-button> </td>
+                    <td> <jk-operator-button [operator]="'In'" (notify)="sendDrawerKey('i')" [allowRepeat]="true"></jk-operator-button> </td>
+                    <td><jk-operator-button [operator]="'White'" (notify)="changeColour(0)" [allowHotkeys]="false"></jk-operator-button></td>
                 </tr>
                 <tr>
-                    <td><jk-operator-button [operator]="'colour Dark'" (notify)="changeColour(1)" [allowHotkeys]="false"></jk-operator-button></td>
-                    <td><jk-operator-button [operator]="'colour Medium'" (notify)="changeColour(5)" [allowHotkeys]="false"></jk-operator-button></td>
-                    <td><jk-operator-button [operator]="'colour Light'" (notify)="changeColour(7)" [allowHotkeys]="false"></jk-operator-button></td>
-                    <td><jk-operator-button [operator]="'Rub Out'" (notify)="changeColour(0)" [allowHotkeys]="false"></jk-operator-button></td>
+                    <td> <jk-operator-button [operator]="'Fast'" (notify)="sendDrawerKey('f')"></jk-operator-button> </td>
+                    <td> <jk-operator-button [operator]="'Slow'" (notify)="sendDrawerKey('s')"></jk-operator-button> </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><jk-operator-button [operator]="'Save'" (notify)="sendDrawerKey('p')"></jk-operator-button></td>
+                    <td><input class="input-file" type="file" (change)="handleFileUpload($event)" accept="image/*" /></td>
+                    <td><img class="status-image" [src]="imgData"/></td>
                 </tr>
             </table>
 
         </div>
         <div>
-            <span>Pencil Colour</span>&nbsp;:&nbsp;<span class="status-indicator" [ngStyle]="{'background-color': pencilColour}">&nbsp;</span>
         </div>
         <div>
-            <img class="status-image" [src]="imgData"/>
         </div>
     </div>
 </div>

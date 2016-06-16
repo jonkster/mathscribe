@@ -3,9 +3,11 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   selector: 'jk-operator-button',
   template: `
     <button class="jk-operator-button"
-        [disabled]="disabled"
-        (click)="addSymbol(operator)"
-        >
+            [disabled]="disabled"
+            (mousedown)="addSymbol(operator); $event.stopPropagation()"
+            (mouseup)="longClickUp($event)"
+            (touchstart)="addSymbol(operator); $event.stopPropagation()"
+            (touchend)="longClickUp($event)" >
         <span class="jk-display-symbol" [innerHTML]="operators[operator].screenDisplay">
         </span>
         <span *ngIf="allowHotkeys && hotkeyEnabled" class="jk-hotkey">
@@ -15,10 +17,16 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   `,
   styles: [`
     .jk-operator-button {
-        margin: 0.8em;
         font-size: 1.2em;
-        padding: 1em;
-        float: left;
+        margin: 0.75em;
+        padding: 0.8em 0.8em;
+        -webkit-touch-callout:none;
+        -webkit-user-select:none;
+        -khtml-user-select:none;
+        -moz-user-select:none;
+        -ms-user-select:none;
+        user-select:none;
+        -webkit-tap-highlight-color:rgba(0,0,0,0);
     }
     .jk-display-symbol {
         font-weight: 900;
@@ -38,12 +46,16 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 })
 export class JkOperatorButtonComponent {
     @Input() operator : string;
+    @Input() allowRepeat : boolean=false;
     @Input() allowHotkeys : boolean = false;
     @Input() hotkeyEnabled : boolean = false;
     @Output() notify:EventEmitter<string> = new EventEmitter<string>();
 
+    repeatDelayMs = 200;
     myOperator = undefined;
     disabled = false;
+    mousedownTimer = undefined;
+    overflow = 0;
 
     ngOnInit() {
         if (this.allowHotkeys) {
@@ -75,7 +87,19 @@ export class JkOperatorButtonComponent {
     }
 
     addSymbol(op) {
-        this.notify.emit(this.myOperator.mathjaxString);
+        if (this.mousedownTimer === undefined) {
+            this.overflow = 0;
+            var obj = this;
+            this.notify.emit(this.myOperator.mathjaxString);
+            if (this.allowRepeat) {
+                this.mousedownTimer = setInterval(function() {
+                    if (obj.overflow++ > 40) {
+                        obj.longClickUp(null);
+                    }
+                    obj.notify.emit(obj.myOperator.mathjaxString);
+                }, this.repeatDelayMs);
+            }
+        }
     }
 
     setEnableHotkey(flag) {
@@ -96,6 +120,13 @@ export class JkOperatorButtonComponent {
             return true;
         }
         return false;
+    }
+
+    longClickUp(ev) {
+        if (this.allowRepeat) {
+            clearInterval(this.mousedownTimer);
+            this.mousedownTimer = undefined;
+        }
     }
 
     operators = {
