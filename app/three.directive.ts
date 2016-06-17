@@ -56,7 +56,7 @@ export class ThreeDirective {
         0xf7f7f7,
         0x101010,
         0x303030,
-        0x505050,
+        0x606060,
         0x707070,
         0x909090,
         0xb0b0b0,

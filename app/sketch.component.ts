@@ -1,4 +1,5 @@
 import { Component, ViewChild, ViewChildren, ElementRef } from '@angular/core';
+import { NgSwitch, NgSwitchWhen, NgSwitchDefault } from '@angular/common';
 import {NgGrid, NgGridItem} from 'angular2-grid';
 
 import {FILE_UPLOAD_DIRECTIVES, FileUploader} from 'ng2-file-upload/ng2-file-upload';
@@ -10,7 +11,7 @@ import { JkOperatorButtonComponent } from './jkoperator.component';
 @Component({
   selector: '[mySketch]',
   templateUrl: 'app/sketch.component.html',
-  directives: [  NgGrid, NgGridItem, ThreeDirective, JkOperatorButtonComponent, FILE_UPLOAD_DIRECTIVES ],
+  directives: [  NgGrid, NgGridItem, NgSwitch, NgSwitchWhen, NgSwitchDefault, ThreeDirective, JkOperatorButtonComponent, FILE_UPLOAD_DIRECTIVES ],
   providers: [ KeyService ],
   styles: [`
       .input-file {
@@ -196,9 +197,10 @@ export class SketchComponent {
         this.drawer.keyInput(key);
     }
 
+
     ngAfterViewInit() {
         this.drawer = this.threeDirective.first;
-        this.changeColour(4);
+        this.changeColour(3);
     }
 
 

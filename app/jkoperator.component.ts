@@ -4,9 +4,9 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   template: `
     <button class="jk-operator-button"
             [disabled]="disabled"
-            (mousedown)="addSymbol(operator); $event.stopPropagation()"
+            (mousedown)="addSymbol(operator, $event); $event.stopPropagation()"
             (mouseup)="longClickUp($event)"
-            (touchstart)="addSymbol(operator); $event.stopPropagation()"
+            (touchstart)="addSymbol(operator, $event); $event.stopPropagation()"
             (touchend)="longClickUp($event)" >
         <span class="jk-display-symbol" [innerHTML]="operators[operator].screenDisplay">
         </span>
@@ -56,6 +56,7 @@ export class JkOperatorButtonComponent {
     disabled = false;
     mousedownTimer = undefined;
     overflow = 0;
+    deviceType = 'unknown';
 
     ngOnInit() {
         if (this.allowHotkeys) {
@@ -66,14 +67,7 @@ export class JkOperatorButtonComponent {
             var sd = this.operator;
             // turn lc alpha chars into unicode italic chars
             if (this.operator.match(/^[a-z]$/)) {
-                if (sd == 'h') {
-                    // 'h' small italic is currently missing from unicode!
-                    sd = '<span style="font-family: STIXGeneral; font-style: italic;">' + sd + '</span>';
-                } else {
-                    var offset = sd.charCodeAt(0) - 97;
-                    var v = 0x1d44e + offset;
-                    sd = "&#" + v + ";";
-                }
+                sd = '<span style="font-family: STIXGeneral; font-style: italic;">' + sd + '</span>';
             }
             this.operators[this.operator] = {
                 'screenDisplay': sd,
@@ -84,9 +78,13 @@ export class JkOperatorButtonComponent {
             };
         }
         this.myOperator = this.operators[this.operator];
+        this.deviceType = this.getDevice();
     }
 
-    addSymbol(op) {
+    addSymbol(op, ev) {
+        if (this.deviceType === 'android' && ev.type === 'mousedown') {
+            return;
+        }
         if (this.mousedownTimer === undefined) {
             this.overflow = 0;
             var obj = this;
@@ -106,17 +104,27 @@ export class JkOperatorButtonComponent {
         this.hotkeyEnabled = flag;
     }
 
+    getDevice() {
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        if (userAgent.match(/Android/i)) {
+            userAgent = 'android';
+        } else {
+            userAgent = 'unknown';
+        }
+        return userAgent;
+    }
+
     hotkey(ch) {
         if (this.hotkeyEnabled) {
             for (var i = 0; i < this.myOperator.hotkeys.length; i++) {
                 if (ch == this.myOperator.hotkeys[i]) {
-                    this.addSymbol(ch);
+                    this.addSymbol(ch, null);
                     return true;
                 }
             }
         }
         if (ch == this.myOperator.unhotkey) {
-            this.addSymbol(ch);
+            this.addSymbol(ch, null);
             return true;
         }
         return false;
@@ -214,7 +222,7 @@ export class JkOperatorButtonComponent {
             'hotkeys': [ ' ', '#' ]
         },
         'flip' : {
-            'screenDisplay': '&#x2191;&#x2193;',
+            'screenDisplay': '&#x21c5;',
             'mathjaxString': '#_darr^uarr',
             'allowHotkey': true,
             'unhotkey': '',

@@ -4,7 +4,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   template: `
     <button class="jk-control-button"
         [disabled]="disabled"
-        (click)="actOnOperator(operator)"
+        (click)="actOnOperator(operator, $event)"
         >
         <span class="jk-display-symbol" [innerHTML]="myControl.screenDisplay">
         </span>
@@ -64,7 +64,8 @@ export class JkControlButtonComponent {
         this.myControl = this.controls[this.control];
     }
 
-    actOnOperator(ch) {
+    actOnOperator(ch, ev) {
+        alert(ev.type);
         this.notify.emit(ch);
     }
 
@@ -74,7 +75,7 @@ export class JkControlButtonComponent {
 
     hotkey(ch) {
         if (ch == this.myControl.hotkey) {
-            this.actOnOperator(ch);
+            this.actOnOperator(ch, null);
             return true;
         }
         return false;
@@ -104,11 +105,11 @@ export class JkControlButtonComponent {
             'hotkey': 'end',
         },
         'deleteLeft' : {
-            'screenDisplay': '&#x232b;',
+            'screenDisplay': 'backspace',
             'hotkey': 'backspace',
         },
         'deleteRight' : {
-            'screenDisplay': '&#x2326;',
+            'screenDisplay': 'delete',
             'hotkey': 'delete',
         },
         'crossOut' : {
@@ -116,7 +117,7 @@ export class JkControlButtonComponent {
             'hotkey': '\\',
         },
         'deleteCrossed' : {
-            'screenDisplay': '&#x2326&nbsp;<del>XXX</del></button>',
+            'screenDisplay': 'del <del>XXX</del></button>',
             'hotkey': '|',
         },
         'paste' : {
@@ -127,11 +128,11 @@ export class JkControlButtonComponent {
             'screenDisplay': 'undo',
         },
         'skipBack' : {
-            'screenDisplay': '&#x1f854;',
+            'screenDisplay': '&#x2196;',
             'hotkey': 'up arrow',
         },
         'skipForward' : {
-            'screenDisplay': '&#x1f856;',
+            'screenDisplay': '&#x2198;',
             'hotkey': 'down arrow',
         },
         'upline' : {

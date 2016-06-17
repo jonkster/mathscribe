@@ -1,11 +1,15 @@
 <div mySketch class="grid" [ngGrid]="{'max_cols': 2, 'max_rows': 1, 'col_width': 600, 'margins': [5, 25], 'draggable': false, 'resizeable': false}" >
     <input style="height:0em;width:0em" #writeInput type="text" (textInput)="keyInput($event)" id="text-input"/>
-    <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" 
+    
+    <div class="grid-item" [ngGridItem]="{'col': 1, 'row': 1, 'sizex': 1, 'sizey': 1}" >
+
+        <div myThreeD 
                 (messenger)="handleMessage($event)" 
                 (mousedown)="drawingClick($event)"
                 (mouseup)="drawingClick($event)"
                 (touchend)="drawingClick($event)"
-                (window:keydown)="keyInput($event)" myThreeD>
+                (window:keydown)="keyInput($event)" >
+        </div>
         <jk-operator-button class="left-top" [operator]="'Blob'" (notify)="sendDrawerKey('x')"></jk-operator-button>
         <jk-operator-button class="right-top" [operator]="'Begin'" (notify)="sendDrawerKey(' ')"></jk-operator-button>
 
@@ -35,12 +39,12 @@
                 <tr>
                     <td> <jk-operator-button [operator]="'Rubber'" (notify)="sendDrawerKey('r')"></jk-operator-button> </td>
                     <td></td>
-                    <td><jk-operator-button [operator]="'Medium'" (notify)="changeColour(5)" [allowHotkeys]="false"></jk-operator-button></td>
+                    <td><jk-operator-button [operator]="'Medium'" (notify)="changeColour(3)" [allowHotkeys]="false"></jk-operator-button></td>
                 </tr>
                 <tr>
                     <td> <jk-operator-button [operator]="'Write'" (notify)="sendDrawerKey('w')"></jk-operator-button> </td>
                     <td><jk-operator-button [operator]="'Trace'" (notify)="sendDrawerKey('t')"></jk-operator-button></td>
-                    <td><jk-operator-button [operator]="'Light'" (notify)="changeColour(7)" [allowHotkeys]="false"></jk-operator-button></td>
+                    <td><jk-operator-button [operator]="'Light'" (notify)="changeColour(6)" [allowHotkeys]="false"></jk-operator-button></td>
                 </tr>
                 <tr>
                     <td> <jk-operator-button [operator]="'Out'" (notify)="sendDrawerKey('o')" [allowRepeat]="true"></jk-operator-button> </td>
